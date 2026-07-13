@@ -1,5 +1,4 @@
 osf
-*.html
 .Rhistory
 .RData
 .DS_Store
