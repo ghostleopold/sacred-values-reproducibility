@@ -1,0 +1,1051 @@
+---
+title: "Sacred Values Signal Trustworthiness --- Reproducibility Pipeline (Studies 4 & 5)"
+subtitle: "Push-button reproduction of the parallel-mediation tests for the two-stage mechanism"
+author: "Sacred Values project"
+date: "Knitted `r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    df_print: kable
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 7.5,
+  fig.height = 4,
+  cache.path = "_rmd_cache/studies-4-5/"
+)
+```
+
+# What this document is
+
+This is the companion to the Studies 1 & 2 pipeline, covering **Studies 4 and 5 --- the
+two-stage mechanism**. Knitting it from a clean R session reproduces, from the raw OSF
+data, every test the manuscript reports for these studies. For each study it works in three
+steps: first the **basic between-condition effect** (does the sacred commitment raise trust
+and social acceptance at all?), reported with both the effect size *r* (= Z/sqrt(N)) and the
+common-language effect size (CLES); then
+the **moral-foundation "halo"** (does the sacred display raise perceived sacralization on
+each of the five foundations?); and finally the **competing-mediator paths to trust** (which
+foundations actually carry trust?). Each computed value is audited in-document against the
+number printed in the manuscript.
+
+It follows the same **push-button replication** standard (Wood, Müller & Brown, *PLOS ONE*
+2018): one self-contained `.Rmd`, raw data read directly, no machine-specific paths,
+sample sizes asserted, manuscript values declared as advance targets, fixed seeds, full
+`sessionInfo()` footer.
+
+**Method (per manuscript *Statistical analysis*).** Studies 4--5 enter all five perceived
+foundations as **parallel competing mediators** in a single structural model, with
+**5,000 bootstrap resamples** and **percentile** 95% confidence intervals. We fit this
+with `lavaan`, mirroring the original analysis.
+
+> **Runtime.** Four bootstrap models (two studies × two outcomes), 5,000 resamples each,
+> take roughly **8--10 minutes** on first knit. Results are **cached**
+> (`_rmd_cache/studies-4-5/`), so subsequent knits are near-instant. To force a clean
+> re-run, delete that folder. To dry-run quickly, lower `N_BOOT` *and* clear the cache.
+
+> **A note on the `lavaan` variance warning.** The mediators (perceived sacralization,
+> ~0--1) and the outcomes (0--100 ratings) live on very different scales, so `lavaan`
+> prints a "variances ... a factor 1000 times larger" note. This is cosmetic --- it
+> reflects the original measurement scales and does not affect the estimates --- so we
+> suppress it inside the fitting function.
+
+---
+
+# Setup
+
+## Packages, seed, parameters, and data location
+
+```{r packages}
+suppressPackageStartupMessages({
+  library(haven)    # read SPSS .sav
+  library(dplyr)    # data manipulation
+  library(lavaan)   # parallel mediation (SEM) with bootstrap CIs
+  library(coin)     # exact-distribution Mann-Whitney (standardized Z)
+  library(ggplot2)  # forest plots
+  library(tibble)   # tidy result tables
+  library(knitr)    # kable tables
+})
+
+set.seed(20260619)        # global document seed
+N_BOOT  <- 5000L          # bootstrap resamples (manuscript: 5,000)
+BOOT_SEED <- 2024L        # seed fixed inside each model for reproducible CIs
+```
+
+```{r data-root}
+find_data_root <- function(start = getwd(), marker = "osf") {
+  d <- normalizePath(start, winslash = "/", mustWork = FALSE)
+  repeat {
+    if (dir.exists(file.path(d, marker))) return(d)
+    parent <- dirname(d)
+    if (identical(parent, d)) {
+      stop("Could not locate the '", marker, "' data directory by walking up from ",
+           start, ".\n  Set DATA_DIR manually in this chunk.", call. = FALSE)
+    }
+    d <- parent
+  }
+}
+
+DATA_DIR <- file.path(find_data_root(), "osf")   # <- override here if needed
+
+s4_file <- file.path(DATA_DIR,
+  "Study 4 - Pork Investment - Moral Character Mediation", "OSF SV Trust - Study 4.sav")
+s5_file <- file.path(DATA_DIR,
+  "Study 5 - Environmental Sacred Values", "OSF Study 5.sav")
+
+stopifnot(
+  "Study 4 .sav not found" = file.exists(s4_file),
+  "Study 5 .sav not found" = file.exists(s5_file)
+)
+cat("Data directory:\n  ", DATA_DIR, "\n")
+```
+
+## Parallel-mediation engine {.tabset}
+
+A single function builds and fits the competing-mediator model for any outcome, IV, and
+set of five mediators, returning tidy tables for the **indirect effects** and the
+**halo (a-paths)**. Defined in the open so every step is auditable.
+
+```{r helpers}
+# Basic between-condition effect (before any mediation) ------------------------
+# Probability of superiority / common-language effect size (CLES):
+# P(a random draw from the sacred condition exceeds one from non-sacred);
+# ties contribute 1/2. Same definition as the Studies 1 & 2 pipeline.
+prob_superiority <- function(high, low) {
+  high <- high[!is.na(high)]; low <- low[!is.na(low)]
+  mean(outer(high, low, function(a, b) (a > b) + 0.5 * (a == b)))
+}
+
+# One outcome's between-condition contrast: descriptives, rank-based Mann-Whitney
+# U (with standardized Z and effect size r = Z / sqrt(N)), and CLES. `iv` is a
+# 0/1 condition code with 1 = sacred. Returns a tidy one-row tibble.
+basic_contrast <- function(data, iv, dv, label) {
+  x  <- as.numeric(data[[iv]]); y <- as.numeric(data[[dv]])
+  ok <- !is.na(x) & !is.na(y); x <- x[ok]; y <- y[ok]
+  g  <- factor(x, levels = c(0, 1), labels = c("Non-sacred", "Sacred"))
+  N  <- length(y); n1 <- sum(x == 0); n2 <- sum(x == 1)
+
+  wt <- coin::wilcox_test(y ~ g, distribution = "asymptotic")
+  Z  <- abs(as.numeric(coin::statistic(wt, type = "standardized")))
+  p  <- coin::pvalue(wt)
+  w  <- stats::wilcox.test(y ~ g, exact = FALSE, correct = FALSE)
+  U1 <- as.numeric(w$statistic); U2 <- n1 * n2 - U1
+
+  r_full <- Z / sqrt(N)   # from the UNROUNDED Z: inside tibble() the rounded Z column
+                          # would mask the outer Z and bias r at rounding boundaries
+  tibble(Outcome   = label,
+         M_sacred  = round(mean(y[x == 1]), 1), SD_sacred = round(sd(y[x == 1]), 1),
+         M_nonsac  = round(mean(y[x == 0]), 1), SD_nonsac = round(sd(y[x == 0]), 1),
+         U         = max(U1, U2),
+         Z         = round(Z, 2),
+         p         = signif(p, 2),
+         r         = round(r_full, 2),
+         CLES      = round(prob_superiority(y[x == 1], y[x == 0]), 3))
+}
+
+# Build lavaan syntax for a parallel mediation with k mediators -----------------
+# Beyond the five indirect effects we also declare the TOTAL effect
+# (c' + sum a*b) and each foundation's indirect effect as a *share of the total
+# effect* (prop%d) plus the overall proportion mediated. lavaan bootstraps these
+# defined parameters automatically, so their percentile CIs come for free and
+# the anchoring numbers the manuscript reports are themselves reproduced here.
+parallel_med_syntax <- function(dv, iv, mediators) {
+  k         <- seq_along(mediators)
+  b_terms   <- paste(sprintf("b%d*%s", k, mediators), collapse = " + ")
+  a_lines   <- paste(sprintf("%s ~ a%d*%s", mediators, k, iv), collapse = "\n")
+  ind_def   <- paste(sprintf("ind%d := a%d*b%d", k, k, k), collapse = "\n")
+  tot_def   <- sprintf("total_indirect := %s",
+                       paste(sprintf("a%d*b%d", k, k), collapse = " + "))
+  teff_def  <- "total_effect := c + total_indirect"
+  prop_def  <- paste(sprintf("prop%d := ind%d/total_effect", k, k), collapse = "\n")
+  pmed_def  <- "prop_mediated := total_indirect/total_effect"
+  paste(sprintf("%s ~ %s + c*%s", dv, b_terms, iv), a_lines, ind_def, tot_def,
+        teff_def, prop_def, pmed_def, sep = "\n")
+}
+
+# Fit the model with bootstrap, percentile CIs ---------------------------------
+fit_parallel_med <- function(data, dv, iv, mediators,
+                             n_boot = N_BOOT, seed = BOOT_SEED) {
+  set.seed(seed)
+  fit <- suppressWarnings(lavaan::sem(
+    parallel_med_syntax(dv, iv, mediators),
+    data = data, se = "bootstrap", bootstrap = n_boot))
+  pe <- lavaan::parameterEstimates(fit, ci = TRUE, boot.ci.type = "perc",
+                                   standardized = TRUE)
+  list(fit = fit, pe = pe, n = lavaan::lavInspect(fit, "ntotal"),
+       mediators = mediators, labels = names(mediators))
+}
+
+# Tidy the five indirect effects (route to the outcome) ------------------------
+# `Pct_total` anchors each raw indirect effect to the total effect, giving
+# "Harm ~X% of the trust effect" rather than an uninterpretable raw B.
+tidy_indirect <- function(res) {
+  k   <- seq_along(res$mediators)
+  pe  <- res$pe[match(sprintf("ind%d", k), res$pe$label), ]
+  pr  <- res$pe[match(sprintf("prop%d", k), res$pe$label), ]
+  tibble(Foundation = res$labels,
+         B        = round(pe$est, 2),
+         CI_low   = round(pe$ci.lower, 2),
+         CI_high  = round(pe$ci.upper, 2),
+         Pct_total = round(100 * pr$est, 1),
+         beta_std = round(pe$std.all, 3),
+         Mediates = ifelse(pe$ci.lower > 0 | pe$ci.upper < 0, "yes", "no"))
+}
+
+# Total effect of the IV on the outcome, in outcome-scale points, with its CI.
+get_total_effect <- function(res) {
+  te <- res$pe[res$pe$label == "total_effect", ]
+  ti <- res$pe[res$pe$label == "total_indirect", ]
+  pm <- res$pe[res$pe$label == "prop_mediated", ]
+  list(total = te$est, total_lo = te$ci.lower, total_hi = te$ci.upper,
+       indirect = ti$est, prop_mediated = pm$est)
+}
+
+# Full decomposition table for the SI: mediator M/SD, a-path (IV -> mediator),
+# b-path (mediator -> outcome), indirect effect, its % of the total effect, and
+# the standardized indirect effect. This is the table that makes B interpretable.
+tidy_decomp <- function(res, data) {
+  k   <- seq_along(res$mediators)
+  ci  <- function(row) sprintf("[%.2f, %.2f]", row$ci.lower, row$ci.upper)
+  a   <- res$pe[match(sprintf("a%d", k), res$pe$label), ]
+  b   <- res$pe[match(sprintf("b%d", k), res$pe$label), ]
+  ind <- res$pe[match(sprintf("ind%d", k), res$pe$label), ]
+  pr  <- res$pe[match(sprintf("prop%d", k), res$pe$label), ]
+  med_M  <- vapply(res$mediators, function(v) mean(data[[v]], na.rm = TRUE), numeric(1))
+  med_SD <- vapply(res$mediators, function(v) sd(data[[v]],   na.rm = TRUE), numeric(1))
+  tibble(Foundation = res$labels,
+         M_SD      = sprintf("%.2f (%.2f)", med_M, med_SD),
+         a_path    = sprintf("%.3f %s", a$est,  vapply(seq_len(nrow(a)), function(i) ci(a[i, ]), "")),
+         b_path    = sprintf("%.2f %s",  b$est,  vapply(seq_len(nrow(b)), function(i) ci(b[i, ]), "")),
+         Indirect  = sprintf("%.2f %s",  ind$est, vapply(seq_len(nrow(ind)), function(i) ci(ind[i, ]), "")),
+         Pct_total = sprintf("%.1f%%",   100 * pr$est),
+         beta_std  = round(ind$std.all, 3))
+}
+
+# Tidy the five a-paths (the moral halo: did the display raise each foundation?)-
+tidy_halo <- function(res) {
+  k  <- seq_along(res$mediators)
+  pe <- res$pe[match(sprintf("a%d", k), res$pe$label), ]
+  tibble(Foundation = res$labels,
+         a        = round(pe$est, 3),
+         CI_low   = round(pe$ci.lower, 3),
+         CI_high  = round(pe$ci.upper, 3),
+         p        = signif(pe$pvalue, 2),
+         Raised   = ifelse(pe$pvalue < 0.05, "yes", "no"))
+}
+
+# Pull one indirect effect's point + CI for the audit table --------------------
+get_indirect <- function(res, foundation) {
+  i  <- match(foundation, res$labels)
+  pe <- res$pe[res$pe$label == sprintf("ind%d", i), ]
+  c(B = pe$est, lo = pe$ci.lower, hi = pe$ci.upper)
+}
+
+# Forest plot of the five indirect effects -------------------------------------
+forest_indirect <- function(res, title) {
+  df <- tidy_indirect(res)
+  df$Foundation <- factor(df$Foundation, levels = rev(res$labels))
+  ggplot(df, aes(B, Foundation, colour = Mediates)) +
+    geom_vline(xintercept = 0, linetype = 2, colour = "grey50") +
+    geom_pointrange(aes(xmin = CI_low, xmax = CI_high), linewidth = 0.7, size = 0.6) +
+    scale_colour_manual(values = c(no = "#9aa0a6", yes = "#1a73e8"),
+                        name = "Mediates trust\n(95% CI excl. 0)") +
+    labs(title = title, x = "Indirect effect on trustworthiness (B)", y = NULL) +
+    theme_minimal(base_size = 12)
+}
+```
+
+```{r audit-helpers}
+# One audit row: computed value vs the manuscript's reported value.
+audit_row <- function(quantity, computed, claimed, tol, digits = 2) {
+  fmt <- function(v) if (is.na(v)) "--" else formatC(v, format = "f", digits = digits)
+  check <- if (is.na(claimed)) "not stated in text"
+           else {
+             d <- abs(computed - claimed)
+             if (d <= tol) "match" else if (d <= 3 * tol) "close" else "DIFFERS"
+           }
+  tibble(Quantity = quantity, Manuscript = fmt(claimed),
+         Computed = fmt(computed), Check = check)
+}
+```
+
+```{r si-helpers}
+# --- SI reproduction helpers ---------------------------------------------------
+
+# Shapiro-Wilk W (+ p, N) for a set of variables (SI normality tables).
+shapiro_table <- function(data, vars) {
+  do.call(rbind, lapply(seq_along(vars), function(i) {
+    x  <- as.numeric(data[[vars[i]]]); x <- x[!is.na(x)]
+    sw <- shapiro.test(x)
+    tibble(Variable = names(vars)[i], W = round(unname(sw$statistic), 2),
+           p = signif(sw$p.value, 2), N = length(x))
+  }))
+}
+
+# Significance stars for a p-value.
+star <- function(p) ifelse(p < .001, "***", ifelse(p < .01, "**", ifelse(p < .05, "*", "")))
+
+# Lower-triangle Pearson correlation matrix (with stars) + trailing Mean / SD rows,
+# reproducing the SI intercorrelation tables. `vars` is a named character vector.
+intercorr_table <- function(data, vars) {
+  lab <- names(vars); k <- length(vars)
+  X <- sapply(vars, function(v) as.numeric(data[[v]]))
+  M <- matrix("", k, k, dimnames = list(sprintf("%d. %s", seq_len(k), lab), paste0(seq_len(k), ".")))
+  for (i in seq_len(k)) for (j in seq_len(i)) {
+    if (i == j) { M[i, j] <- "--"; next }
+    ct <- suppressWarnings(cor.test(X[, i], X[, j]))
+    M[i, j] <- sprintf("%.2f%s", ct$estimate, star(ct$p.value))
+  }
+  out <- tibble::as_tibble(M, rownames = "Variable")
+  out$Mean <- round(colMeans(X, na.rm = TRUE), 2)
+  out$SD   <- round(apply(X, 2, sd, na.rm = TRUE), 2)
+  out
+}
+
+# Welch t-test of dv by a 0/1 condition (1 = sacred), with pooled-SD Cohen's d,
+# reproducing the SI "parametric replication" lists. Returns SV/NSV M, t, df, p, d.
+ttest_row <- function(data, iv, dv, label) {
+  x <- as.numeric(data[[iv]]); y <- as.numeric(data[[dv]])
+  ok <- !is.na(x) & !is.na(y); x <- x[ok]; y <- y[ok]
+  tt <- stats::t.test(y[x == 1], y[x == 0])  # Welch, SV vs NSV (positive t = sacred higher)
+  n1 <- sum(x == 1); n0 <- sum(x == 0)
+  sp <- sqrt(((n1 - 1) * sd(y[x == 1])^2 + (n0 - 1) * sd(y[x == 0])^2) / (n1 + n0 - 2))
+  tibble(Variable = label,
+         M_SV = round(mean(y[x == 1]), 2), M_NSV = round(mean(y[x == 0]), 2),
+         t = round(unname(tt$statistic), 2), df = round(unname(tt$parameter), 2),
+         p = signif(tt$p.value, 2), d = round(abs(mean(y[x == 1]) - mean(y[x == 0])) / sp, 2))
+}
+
+# SPSS-style Type III factorial ANOVA (sum-to-zero contrasts; each term's SS from
+# dropping its columns from the full model). Matches the SI's SPSS GLM output for the
+# unbalanced 2 x 3 conflict-expectation designs; the default `anova()` is sequential
+# (Type I) and does not. Self-contained to avoid a car::Anova dependency.
+# Returns F, dfs, p, and partial eta^2 per term.
+anova_type3 <- function(formula, data) {
+  old <- options(contrasts = c("contr.sum", "contr.poly")); on.exit(options(old))
+  mf  <- model.frame(formula, data, na.action = na.omit)
+  fit <- lm(formula, data = mf)
+  X   <- model.matrix(fit); asg <- attr(X, "assign")
+  tl  <- attr(terms(fit), "term.labels")
+  yv  <- model.response(mf)
+  ssr <- sum(residuals(fit)^2); dfr <- df.residual(fit)
+  do.call(rbind, lapply(seq_along(tl), function(k) {
+    fit0 <- lm.fit(X[, asg != k, drop = FALSE], yv)
+    ss   <- sum(fit0$residuals^2) - ssr
+    df1  <- sum(asg == k)
+    Fv   <- (ss / df1) / (ssr / dfr)
+    tibble(Term = tl[k], df1 = df1, df2 = dfr, F = round(Fv, 2),
+           p = round(pf(Fv, df1, dfr, lower.tail = FALSE), 3),
+           eta_p2 = round(ss / (ss + ssr), 3))
+  }))
+}
+```
+
+---
+
+# Study 4 --- Islamic finance, five foundations (out-group)
+
+> Study 2's Islamic-investment scenario, now measuring perceived sacralization across all
+> five moral foundations. Manuscript $N = 289$. Prediction: a **full halo** (all five
+> raised) but a **narrower route to trust**.
+
+## Load, exclude, and prepare
+
+```{r s4-prep}
+s4_meds <- c(Harm = "Harm_SV", Fairness = "Fair_SV", Authority = "Auth_SV",
+             Loyalty = "Loya_SV", Purity = "Pure_SV")
+s4_vars <- c("Condition", "Trust_Att", "Soc_Rel", unname(s4_meds))
+
+s4 <- read_sav(s4_file) %>% filter(Exclusions == 0)
+for (v in s4_vars) s4[[v]] <- as.numeric(s4[[v]])
+
+stopifnot("Study 4 N after exclusions != 289" = nrow(s4) == 289L)
+cat("N =", nrow(s4), "\n"); table(Condition = s4$Condition)
+```
+
+## Basic effect of condition: does the sacred display raise trust and social acceptance?
+
+Before the competing-mediator model, the simplest question: did the sacred commitment
+raise each outcome at all? A rank-based between-condition contrast (Mann-Whitney *U*, with
+standardized *Z* and effect-size *r*), reported with the **common-language effect size**
+(CLES = the probability that a randomly drawn sacred-condition rating exceeds a randomly
+drawn non-sacred one). This mirrors the headline contrast in the Studies 1 & 2 pipeline
+and supplies the **r and CLES the manuscript reports** for Study 4 (r = .59, CLES = 0.84).
+
+```{r s4-basic}
+s4_basic <- dplyr::bind_rows(
+  basic_contrast(s4, "Condition", "Trust_Att", "Trustworthiness"),
+  basic_contrast(s4, "Condition", "Soc_Rel",   "Social acceptance")
+)
+kable(s4_basic,
+      caption = "Study 4: between-condition effect on trust and social acceptance (1 = sacred).")
+
+cat(sprintf(
+  "Trust effect sizes: r = %.2f, CLES = %.2f  (manuscript Study 4 reports both).\n",
+  s4_basic$r[s4_basic$Outcome == "Trustworthiness"],
+  s4_basic$CLES[s4_basic$Outcome == "Trustworthiness"]))
+```
+
+The sacred commitment lifts both outcomes well past chance: trust is the stronger signal,
+social acceptance follows. Only after establishing that the effect exists do we ask *which
+moral foundations carry it* -- the parallel mediation below.
+
+## The moral halo (a-paths): does the sacred display raise every foundation?
+
+```{r s4-trust-fit, cache=TRUE, cache.lazy=FALSE}
+s4_trust <- fit_parallel_med(s4, "Trust_Att", "Condition", s4_meds)
+```
+
+```{r s4-halo}
+kable(tidy_halo(s4_trust),
+      caption = "Study 4 halo: effect of sacred condition on each perceived foundation.")
+```
+
+## Competing mediators: which foundation carries trust?
+
+```{r s4-indirect}
+kable(tidy_indirect(s4_trust),
+      caption = "Study 4: indirect effects on trustworthiness (parallel mediation).")
+```
+
+```{r s4-forest, fig.cap="Study 4: indirect effects of the five foundations on trustworthiness (percentile bootstrap 95% CIs). Blue = CI excludes zero."}
+forest_indirect(s4_trust, "Study 4 — routes to trust")
+```
+
+## Anchoring: total effect and each pathway's share
+
+The raw indirect `B` is on the 0--100 trust scale and means little on its own. Here we
+anchor it: the **total effect** of the sacred display on trust (in scale points), the
+**proportion mediated** by the five measured foundations jointly, and each foundation's
+indirect effect as a **share of the total effect**. The mediators are perceived-sacralization
+scores on a **0--1** scale (proportion of a foundation's items the target is judged to hold
+non-negotiable), so the a-paths read directly as a shift along that scale.
+
+```{r s4-anchor}
+s4_te <- get_total_effect(s4_trust)
+cat(sprintf(
+  "Study 4 total effect on trust: %.1f points (0-100 scale).\n  Mediated jointly: %.1f points = %.0f%% of the total (rest is a direct path).\n",
+  s4_te$total, s4_te$indirect, 100 * s4_te$prop_mediated))
+kable(tidy_decomp(s4_trust, s4),
+      caption = "Study 4 decomposition (SI): mediator M (SD) on the 0-1 scale, a-path, b-path, indirect effect, its share of the total effect, and the standardized indirect effect.")
+```
+
+## Social acceptance outcome (*SI Appendix*, Fig. S1)
+
+The same parallel mediation with willingness-to-affiliate (`Soc_Rel`) as the outcome.
+
+```{r s4-soc-fit, cache=TRUE, cache.lazy=FALSE}
+s4_soc <- fit_parallel_med(s4, "Soc_Rel", "Condition", s4_meds)
+```
+
+```{r s4-soc}
+kable(tidy_indirect(s4_soc),
+      caption = "Study 4: indirect effects on social acceptance.")
+```
+
+## Audit: computed vs manuscript (Study 4)
+
+```{r s4-audit}
+s4_h <- get_indirect(s4_trust, "Harm")
+s4_f <- get_indirect(s4_trust, "Fairness")
+s4_tr_cles <- s4_basic$CLES[s4_basic$Outcome == "Trustworthiness"]
+s4_tr_r    <- s4_basic$r[s4_basic$Outcome == "Trustworthiness"]
+s4_ind <- tidy_indirect(s4_trust)
+s4_te  <- get_total_effect(s4_trust)
+s4_audit <- dplyr::bind_rows(
+  audit_row("N (analysed)",                nrow(s4),     289, 0.1, 0),
+  audit_row("Trust r (= Z/sqrt(N))",       s4_tr_r,     0.59, 0.02, 2),
+  audit_row("Trust CLES",                  s4_tr_cles,  0.84, 0.01, 2),
+  audit_row("Total effect on trust (pts)", s4_te$total, 28.6, 0.3, 1),
+  audit_row("Prop. mediated (%)",          100*s4_te$prop_mediated, 20, 2, 0),
+  audit_row("Harm indirect B (trust)",     s4_h["B"],   4.46, 0.05),
+  audit_row("Harm % of total effect",      s4_ind$Pct_total[s4_ind$Foundation=="Harm"], 16, 2, 0),
+  audit_row("Harm 95% CI lower",           s4_h["lo"],  1.67, 0.5),
+  audit_row("Harm 95% CI upper",           s4_h["hi"],  7.72, 0.5),
+  audit_row("Fairness indirect B (trust)", s4_f["B"],   4.34, 0.05),
+  audit_row("Fairness % of total effect",  s4_ind$Pct_total[s4_ind$Foundation=="Fairness"], 15, 2, 0),
+  audit_row("Fairness 95% CI lower",       s4_f["lo"],  0.91, 0.5),
+  audit_row("Fairness 95% CI upper",       s4_f["hi"],  8.19, 0.5)
+)
+kable(s4_audit, align = "lrrl")
+
+n_raised4 <- sum(tidy_halo(s4_trust)$Raised == "yes")
+cat(sprintf("Halo: %d of 5 foundations raised (manuscript: all five, ps < .001).\n",
+            n_raised4))
+```
+
+The route to trust is carried by **Harm and Fairness** (CIs exclude zero); Loyalty,
+Authority, and Purity do not --- matching the manuscript. The manuscript's caution that,
+in a single religious scenario, Harm and Fairness "could not be cleanly separated" is
+exactly what Study 5 addresses.
+
+## SI: intercorrelations (`tbl:s4-intercorr`)
+
+Zero-order Pearson correlations among trustworthiness, social acceptance (the affiliation
+composite -- labelled "social acceptance" rather than "social desirability", as it is not the
+response-bias construct), and the five
+perceived-sacralization proportions, with the group means and SDs the SI reports.
+
+```{r s4-intercorr}
+s4_ic_vars <- c(Trust = "Trust_Att", "Social Acc." = "Soc_Rel", Harm = "Harm_SV",
+                Fairness = "Fair_SV", Loyalty = "Loya_SV", Authority = "Auth_SV", Purity = "Pure_SV")
+s4_ic <- intercorr_table(s4, s4_ic_vars)
+kable(s4_ic, caption = "Study 4 intercorrelations (tbl:s4-intercorr). Lower triangle: Pearson r (* p<.05, ** p<.01, *** p<.001). Foundations are proportion-of-items sacralized (0-1).")
+```
+
+## SI: normality (Shapiro-Wilk)
+
+```{r s4-normality}
+kable(shapiro_table(s4, c(Trustworthiness = "Trust_Att", "Social acceptance" = "Soc_Rel",
+                          Harm = "Harm_SV", Fairness = "Fair_SV", Loyalty = "Loya_SV",
+                          Authority = "Auth_SV", Purity = "Pure_SV")),
+      caption = "Study 4 Shapiro-Wilk normality tests (SI). All significant (non-normal), motivating the rank-based main analysis.")
+```
+
+## SI: main effects on foundations using continuous MFSS scores
+
+The main analysis uses the proportion-of-items sacralized; the SI corroborates the halo with
+the **continuous** MFSS foundation scores (`MF_*`). Rank-based Mann-Whitney contrasts, same
+engine as the headline effect.
+
+```{r s4-cont-mwu}
+s4_cont_mwu <- dplyr::bind_rows(
+  basic_contrast(s4, "Condition", "MF_Harm", "Harm"),
+  basic_contrast(s4, "Condition", "MF_Fair", "Fairness"),
+  basic_contrast(s4, "Condition", "MF_Auth", "Authority"),
+  basic_contrast(s4, "Condition", "MF_InGr", "Loyalty"),
+  basic_contrast(s4, "Condition", "MF_Pur",  "Purity"))
+kable(s4_cont_mwu[, c("Outcome","U","Z","p","r","CLES")],
+      caption = "Study 4: continuous-MFSS foundation main effects (Mann-Whitney). SI Z targets: 4.76 / 4.80 / 5.56 / 6.79 / 5.82.")
+```
+
+## SI: multiple mediation using continuous MFSS scores
+
+The competing-mediator model refit with the continuous MFSS foundation scores as mediators.
+
+```{r s4-cont-fit, cache=TRUE, cache.lazy=FALSE}
+s4_meds_cont <- c(Harm = "MF_Harm", Fairness = "MF_Fair", Loyalty = "MF_InGr",
+                  Authority = "MF_Auth", Purity = "MF_Pur")
+s4_cont <- fit_parallel_med(s4, "Trust_Att", "Condition", s4_meds_cont)
+```
+
+```{r s4-cont-med}
+kable(tidy_indirect(s4_cont),
+      caption = "Study 4: indirect effects on trust using continuous MFSS mediators. SI: only Harm significant (B = 3.59, 95% CI [1.31, 6.65]).")
+```
+
+## SI: parametric replication (t-tests)
+
+The non-parametric main effects re-run as Welch t-tests with pooled-SD Cohen's *d*, matching
+the SI's parametric-replication list.
+
+```{r s4-param}
+s4_param <- dplyr::bind_rows(
+  ttest_row(s4, "Condition", "Trust_Att", "Trustworthiness"),
+  ttest_row(s4, "Condition", "Soc_Rel",   "Social acceptance"),
+  ttest_row(s4, "Condition", "Harm_SV",   "Harm sacralization"),
+  ttest_row(s4, "Condition", "Fair_SV",   "Fairness sacralization"),
+  ttest_row(s4, "Condition", "Loya_SV",   "Loyalty sacralization"),
+  ttest_row(s4, "Condition", "Auth_SV",   "Authority sacralization"),
+  ttest_row(s4, "Condition", "Pure_SV",   "Purity sacralization"))
+kable(s4_param, caption = "Study 4 parametric replication (Welch t, pooled-SD d). SI trust: t(257.86) = 12.27, d = 1.44.")
+```
+
+## Audit: Study 4 SI
+
+```{r s4-si-audit}
+gic <- function(tab, row, col) tab[[col]][tab$Variable == row]     # pull an intercorr cell numeric
+r_num <- function(cell) as.numeric(sub("[*]+$", "", cell))         # strip stars
+s4_hc <- get_indirect(s4_cont, "Harm")
+s4_pm <- function(v, c) s4_param[[c]][s4_param$Variable == v]
+s4_soc_ind <- tidy_indirect(s4_soc)
+s4_si_audit <- dplyr::bind_rows(
+  audit_row("Intercorr r(Trust, Social Acc.)", r_num(gic(s4_ic, "2. Social Acc.", "1.")),   0.68, 0.02, 2),
+  audit_row("Intercorr r(Trust, Harm)",        r_num(gic(s4_ic, "3. Harm", "1.")),          0.50, 0.02, 2),
+  audit_row("Intercorr Trust mean",            gic(s4_ic, "1. Trust", "Mean"),             64.18, 0.5, 2),
+  audit_row("Shapiro Trust W",                 shapiro_table(s4, c(T="Trust_Att"))$W,       0.96, 0.01, 2),
+  audit_row("Shapiro Harm W",                  shapiro_table(s4, c(H="Harm_SV"))$W,         0.82, 0.01, 2),
+  audit_row("Continuous-MFSS Harm Z",          s4_cont_mwu$Z[s4_cont_mwu$Outcome=="Harm"],  4.76, 0.05, 2),
+  audit_row("Continuous-MFSS Loyalty Z",       s4_cont_mwu$Z[s4_cont_mwu$Outcome=="Loyalty"],6.79, 0.05, 2),
+  audit_row("Continuous-MFSS mediation Harm B",s4_hc["B"],  3.59, 0.15),
+  audit_row("Continuous-MFSS Harm CI lower",   s4_hc["lo"], 1.31, 0.6),
+  audit_row("Continuous-MFSS Harm CI upper",   s4_hc["hi"], 6.65, 0.6),
+  audit_row("Parametric trust t",              s4_pm("Trustworthiness","t"), 12.27, 0.1, 2),
+  audit_row("Parametric trust d",              s4_pm("Trustworthiness","d"),  1.44, 0.03, 2),
+  audit_row("Parametric fairness t",           s4_pm("Fairness sacralization","t"), 7.51, 0.1, 2),
+  audit_row("Parametric loyalty t",            s4_pm("Loyalty sacralization","t"),  9.03, 0.1, 2),
+  audit_row("Social-accept. Harm indirect B",  get_indirect(s4_soc,"Harm")["B"], NA, 0.1)
+)
+kable(s4_si_audit, align = "lrrl")
+cat("Social-acceptance mediators (CI excl. 0):",
+    paste(s4_soc_ind$Foundation[s4_soc_ind$Mediates=="yes"], collapse=", "),
+    "\n  (SI Fig. S1: Harm and Fairness positive, Loyalty negative.)\n")
+```
+
+---
+
+# Study 5 --- Environmental commitment, secular domain
+
+> A secular sacred value (bearing real cost for an environmental commitment), designed to
+> separate Harm from Fairness. Manuscript $N = 288$. Prediction: a **partial
+> halo** and a route to trust that **narrows to Harm alone**.
+
+## Load, exclude, and prepare
+
+```{r s5-prep}
+s5_meds <- c(Harm = "Never_Harm", Fairness = "Never_Fair", Authority = "Never_Auth",
+             Loyalty = "Never_InGrp", Purity = "Never_Pure")
+s5_vars <- c("Cond_01", "Trust_Att", "Int_Rel", unname(s5_meds))
+
+# Proper exclusion: dplyr::filter drops the NA-exclusion row (the old base-R
+# `d[d$Exclusion==0, ]` kept a phantom all-NA row, inflating N to 289).
+s5 <- read_sav(s5_file) %>% filter(Exclusion == 0)
+for (v in s5_vars) s5[[v]] <- as.numeric(s5[[v]])
+
+cat("N after exclusions =", nrow(s5), "(complete cases used by lavaan)\n")
+stopifnot("Study 5 N after clean exclusion != 288" = nrow(s5) == 288L)
+table(Cond_01 = s5$Cond_01)
+```
+
+> **Note.** A clean exclusion yields **N = 288**, matching the current manuscript. (An earlier
+> draft printed 289; the one-case gap was a base-R `NA`-indexing artifact in the original
+> script --- `lavaan` used 288 complete cases either way --- and the manuscript now reads 288.)
+
+## Basic effect of condition: does the sacred display raise trust and social acceptance?
+
+The same between-condition contrast for the secular (environmental) sacred value, on trust
+and on interpersonal relations.
+
+```{r s5-basic}
+s5_basic <- dplyr::bind_rows(
+  basic_contrast(s5, "Cond_01", "Trust_Att", "Trustworthiness"),
+  basic_contrast(s5, "Cond_01", "Int_Rel",   "Interpersonal relations")
+)
+kable(s5_basic,
+      caption = "Study 5: between-condition effect on trust and interpersonal relations (1 = sacred).")
+```
+
+The secular sacred value reproduces the basic pattern -- both outcomes rise -- though more
+modestly than in the religious frame, as expected for a lower-intensity commitment.
+
+## The moral halo (a-paths)
+
+```{r s5-trust-fit, cache=TRUE, cache.lazy=FALSE}
+s5_trust <- fit_parallel_med(s5, "Trust_Att", "Cond_01", s5_meds)
+```
+
+```{r s5-halo}
+kable(tidy_halo(s5_trust),
+      caption = "Study 5 halo: effect of sacred condition on each perceived foundation.")
+```
+
+## Competing mediators: which foundation carries trust?
+
+```{r s5-indirect}
+kable(tidy_indirect(s5_trust),
+      caption = "Study 5: indirect effects on trustworthiness (parallel mediation).")
+```
+
+```{r s5-forest, fig.cap="Study 5: indirect effects of the five foundations on trustworthiness (percentile bootstrap 95% CIs). Blue = CI excludes zero."}
+forest_indirect(s5_trust, "Study 5 — routes to trust")
+```
+
+## Anchoring: total effect and each pathway's share
+
+```{r s5-anchor}
+s5_te <- get_total_effect(s5_trust)
+cat(sprintf(
+  "Study 5 total effect on trust: %.1f points (0-100 scale).\n  Mediated jointly: %.1f points = %.0f%% of the total (rest is a direct path).\n",
+  s5_te$total, s5_te$indirect, 100 * s5_te$prop_mediated))
+kable(tidy_decomp(s5_trust, s5),
+      caption = "Study 5 decomposition (SI): mediator M (SD) on the 0-1 scale, a-path, b-path, indirect effect, its share of the total effect, and the standardized indirect effect.")
+```
+
+## Interpersonal-relations outcome
+
+```{r s5-int-fit, cache=TRUE, cache.lazy=FALSE}
+s5_int <- fit_parallel_med(s5, "Int_Rel", "Cond_01", s5_meds)
+```
+
+```{r s5-int}
+kable(tidy_indirect(s5_int),
+      caption = "Study 5: indirect effects on interpersonal relations.")
+```
+
+## Audit: computed vs manuscript (Study 5)
+
+```{r s5-audit}
+s5_h <- get_indirect(s5_trust, "Harm")
+s5_tr_cles <- s5_basic$CLES[s5_basic$Outcome == "Trustworthiness"]
+s5_tr_r    <- s5_basic$r[s5_basic$Outcome == "Trustworthiness"]
+s5_ind <- tidy_indirect(s5_trust)
+s5_te  <- get_total_effect(s5_trust)
+s5_audit <- dplyr::bind_rows(
+  audit_row("N (analysed)",            nrow(s5),    288, 0.1, 0),
+  audit_row("Trust r (= Z/sqrt(N))",   s5_tr_r,    0.37, 0.02, 2),
+  audit_row("Trust CLES",              s5_tr_cles, 0.71, 0.01, 2),
+  audit_row("Total effect on trust (pts)", s5_te$total, 12.1, 0.3, 1),
+  audit_row("Prop. mediated (%)",      100*s5_te$prop_mediated, 15, 2, 0),
+  audit_row("Harm indirect B (trust)", s5_h["B"],  1.24, 0.05),
+  audit_row("Harm % of total effect",  s5_ind$Pct_total[s5_ind$Foundation=="Harm"], 10, 2, 0),
+  audit_row("Harm 95% CI lower",       s5_h["lo"], 0.12, 0.5),
+  audit_row("Harm 95% CI upper",       s5_h["hi"], 2.88, 0.5)
+)
+kable(s5_audit, align = "lrrl")
+
+halo5 <- tidy_halo(s5_trust)
+cat("Halo raised on:", paste(halo5$Foundation[halo5$Raised == "yes"], collapse = ", "),
+    "\n  (manuscript: Harm, Fairness, and Loyalty raised; Authority and Purity not.)\n")
+ind5 <- tidy_indirect(s5_trust)
+cat("Mediates trust:", paste(ind5$Foundation[ind5$Mediates == "yes"], collapse = ", "),
+    "\n  (manuscript: Harm alone.)\n")
+```
+
+Removed from the religious frame, **Fairness drops away and Harm alone remains** the route
+to trust --- the manuscript's central claim for the two-stage mechanism.
+
+## SI: normality (Shapiro-Wilk)
+
+```{r s5-normality}
+kable(shapiro_table(s5, c(Trustworthiness = "Trust_Att", "Social acceptance" = "Int_Rel",
+                          Harm = "Never_Harm", Fairness = "Never_Fair", Loyalty = "Never_InGrp",
+                          Authority = "Never_Auth", Purity = "Never_Pure", Environment = "Never_Env")),
+      caption = "Study 5 Shapiro-Wilk normality tests (SI). All significant (non-normal).")
+```
+
+## SI: intercorrelations (`tbl:s5-intercorr`)
+
+```{r s5-intercorr}
+s5_ic_vars <- c(Trust = "Trust_Att", "Social Acc." = "Int_Rel", Harm = "Never_Harm",
+                Fairness = "Never_Fair", Loyalty = "Never_InGrp", Authority = "Never_Auth",
+                Purity = "Never_Pure", Environment = "Never_Env")
+s5_ic <- intercorr_table(s5, s5_ic_vars)
+kable(s5_ic, caption = "Study 5 intercorrelations (tbl:s5-intercorr). Lower triangle Pearson r (* p<.05, ** p<.01, *** p<.001); foundations are proportion-of-items sacralized.")
+```
+
+### By condition (`tbl:s5-intercorr-cond`)
+
+```{r s5-intercorr-cond}
+s5_sac <- intercorr_table(dplyr::filter(s5, Cond_01 == 1), s5_ic_vars)
+s5_non <- intercorr_table(dplyr::filter(s5, Cond_01 == 0), s5_ic_vars)
+kable(s5_sac, caption = "Study 5 intercorrelations, sacred condition (n = 142).")
+kable(s5_non, caption = "Study 5 intercorrelations, non-sacred condition (n = 146).")
+```
+
+## SI: parametric replication (t-tests)
+
+```{r s5-param}
+s5_param <- dplyr::bind_rows(
+  ttest_row(s5, "Cond_01", "Trust_Att",   "Trustworthiness"),
+  ttest_row(s5, "Cond_01", "Int_Rel",     "Social acceptance"),
+  ttest_row(s5, "Cond_01", "Never_Harm",  "Harm sacralization"),
+  ttest_row(s5, "Cond_01", "Never_Fair",  "Fairness sacralization"),
+  ttest_row(s5, "Cond_01", "Never_InGrp", "Loyalty sacralization"),
+  ttest_row(s5, "Cond_01", "Never_Env",   "Environment sacralization"),
+  ttest_row(s5, "Cond_01", "Never_Auth",  "Authority sacralization"),
+  ttest_row(s5, "Cond_01", "Never_Pure",  "Purity sacralization"),
+  ttest_row(s5, "Cond_01", "Never_NonMor","Non-moral dilemmas"))
+kable(s5_param, caption = "Study 5 parametric replication (Welch t, pooled-SD d). SI: trust t(276.78)=6.46; Authority/Purity/non-moral non-significant.")
+```
+
+## SI: social conflict expectations
+
+Rank-based contrasts on expected social conflict with the target, overall and by relationship
+domain. The pre-built composites `CE_Total` (overall) and `CE_Fri`/`CE_Rom`/`CE_WC`/`CE_BO`.
+
+```{r s5-conflict}
+s5_conflict <- dplyr::bind_rows(
+  basic_contrast(s5, "Cond_01", "CE_Total", "Overall"),
+  basic_contrast(s5, "Cond_01", "CE_Fri",   "Close friend"),
+  basic_contrast(s5, "Cond_01", "CE_Rom",   "Romantic partner"),
+  basic_contrast(s5, "Cond_01", "CE_WC",    "Work colleague"),
+  basic_contrast(s5, "Cond_01", "CE_BO",    "Boss"))
+kable(s5_conflict[, c("Outcome","U","Z","p","r","CLES")],
+      caption = "Study 5 social-conflict expectations (Mann-Whitney). SI Z: overall 2.55, friend 3.87, romantic 2.58; colleague/boss non-significant.")
+```
+
+## SI: main effects robust to overall conflict expectations (SI 5.9)
+
+2 × 3 factorial ANOVAs (Type III) testing whether the condition effects on trustworthiness
+and interpersonal relations survive controlling for overall conflict expectation. The
+grouping factor is the **archived** `CE_Total_HiLow` variable (low *n* = 83, ambivalent
+*n* = 157, high *n* = 48); this archived grouping is *not* a ±1 SD cut on the conflict
+composite. Computed from the archived N = 288 sample, the F statistics are:
+trustworthiness -- condition *F*(1, 282) = 37.50, *p* < .001, η²p = .12; CE
+*F*(2, 282) = 3.48, *p* = .032; interaction *F*(2, 282) = 1.64, *p* = .196; interpersonal
+relations -- condition *F*(1, 282) = 39.02, *p* < .001, η²p = .12; CE *F*(2, 282) = 5.01,
+*p* = .007; interaction *F*(2, 282) = 1.41, *p* = .246.
+
+```{r s5-overall-conflict-anova}
+s5o <- s5 %>% mutate(trust = as.numeric(Trust_Att), interp = as.numeric(Int_Rel),
+                     cond = factor(Cond_01), ce = factor(CE_Total_HiLow))
+cat("CE_Total_HiLow group ns (low/ambivalent/high):",
+    paste(table(s5o$ce), collapse = "/"), "(SI: 83/157/48)\n")
+s5_oc_tr  <- anova_type3(trust  ~ cond * ce, s5o)
+s5_oc_int <- anova_type3(interp ~ cond * ce, s5o)
+kable(s5_oc_tr,  caption = "Trustworthiness ~ condition x overall CE (Type III). SI: 37.50 / 3.48 (p=.032) / 1.64 (p=.196), dfs (1,282)/(2,282)/(2,282).")
+kable(s5_oc_int, caption = "Interpersonal relations ~ condition x overall CE (Type III). SI: 39.02 / 5.01 (p=.007) / 1.41 (p=.246).")
+
+oc_F <- function(tab, term) tab$F[tab$Term == term]
+s5_oc_audit <- dplyr::bind_rows(
+  audit_row("Trust ~ condition F",        oc_F(s5_oc_tr,  "cond"),    37.50, 0.05, 2),
+  audit_row("Trust ~ CE F",               oc_F(s5_oc_tr,  "ce"),       3.48, 0.05, 2),
+  audit_row("Trust ~ cond x CE F",        oc_F(s5_oc_tr,  "cond:ce"),  1.64, 0.05, 2),
+  audit_row("Interp ~ condition F",       oc_F(s5_oc_int, "cond"),    39.02, 0.05, 2),
+  audit_row("Interp ~ CE F",              oc_F(s5_oc_int, "ce"),       5.01, 0.05, 2),
+  audit_row("Interp ~ cond x CE F",       oc_F(s5_oc_int, "cond:ce"),  1.41, 0.05, 2)
+)
+kable(s5_oc_audit, align = "lrrl")
+stopifnot("SI 5.9 overall-conflict ANOVAs do not reproduce" =
+            all(s5_oc_audit$Check == "match"),
+          "CE_Total_HiLow group ns differ from SI 83/157/48" =
+            all(as.integer(table(s5o$ce)) == c(83, 157, 48)))
+```
+
+## SI: scale and sample notes
+
+Three scale and sample facts, verified against the raw data, are asserted here:
+the environmental-violation manipulation-check items are **8-point** (1 = \$0 free ... 8 =
+never for any amount); the conflict-expectation items are 7-point; the
+SPSS EMM plot in SI 5.9 is on the **summed** four-item composite `Inter_Rel` (0--400), not
+the 0--100 per-item scale `Int_Rel`; and the archived analytic sample is *n* = 146
+non-sacred / 142 sacred.
+
+```{r s5-scale-notes}
+# EV_ManCk_1..6 are the 8-point violation items (value labels: 1 = "$0 (for free)" ...
+# 8 = "never, for any amount of money"); the EV_ManCk_NV_* columns are 0/1 indicator
+# variables, not response scales, and are not part of the SI's scale claim.
+ev  <- unlist(lapply(paste0("EV_ManCk_", 1:6),    function(v) as.numeric(s5[[v]])))
+cei <- unlist(lapply(grep("^CE_(CF|RP|WC|BO)[0-9]$", names(s5), value = TRUE),
+                     function(v) as.numeric(s5[[v]])))
+cat(sprintf("EV_ManCk items: observed %d--%d | CE items: observed %d--%d | Inter_Rel: %.0f--%.0f | Int_Rel: %.0f--%.0f\n",
+            min(ev, na.rm = TRUE), max(ev, na.rm = TRUE),
+            min(cei, na.rm = TRUE), max(cei, na.rm = TRUE),
+            min(as.numeric(s5$Inter_Rel), na.rm = TRUE), max(as.numeric(s5$Inter_Rel), na.rm = TRUE),
+            min(as.numeric(s5$Int_Rel), na.rm = TRUE),   max(as.numeric(s5$Int_Rel), na.rm = TRUE)))
+stopifnot("EV manipulation-check responses outside the 8-point 1..8 range" =
+            all(ev >= 1 & ev <= 8, na.rm = TRUE),
+          "8th EV response option unused -- 8-point claim would be vacuous" =
+            max(ev, na.rm = TRUE) == 8,
+          "CE item responses outside the 7-point 1..7 range" =
+            all(cei >= 1 & cei <= 7, na.rm = TRUE),
+          "Inter_Rel does not exceed 100 -- summed-composite (0-400) note would be wrong" =
+            max(as.numeric(s5$Inter_Rel), na.rm = TRUE) > 100,
+          "Archived condition ns are not 146 non-sacred / 142 sacred" =
+            all(as.integer(table(as.numeric(s5$Cond_01))) == c(146, 142)))
+```
+
+## SI: robustness controlling for demographics
+
+Hierarchical regression of trustworthiness on condition (Level 1), then adding demographics
+(Level 2). Politics recoded to conservatism (Republican = 1), sex to male, ethnicity to white.
+
+```{r s5-demographics}
+s5d <- s5 %>% mutate(
+  trust = as.numeric(Trust_Att), cond = as.numeric(Cond_01), age = as.numeric(Age),
+  conservatism = dplyr::case_when(as.character(haven::as_factor(Politics)) == "Republican" ~ 1,
+                    as.character(haven::as_factor(Politics)) %in% c("Democrat","Independent") ~ 0,
+                    TRUE ~ NA_real_),
+  male  = dplyr::case_when(as.character(haven::as_factor(Sex)) == "Male" ~ 1,
+                    as.character(haven::as_factor(Sex)) == "Female" ~ 0, TRUE ~ NA_real_),
+  white = as.integer(as.character(haven::as_factor(Ethnicity)) == "White"))
+
+std_beta <- function(fit, term) {
+  b <- coef(fit)[term]; mf <- model.frame(fit)
+  unname(b * sd(mf[[term]]) / sd(mf[[1]]))
+}
+s5_L1 <- lm(trust ~ cond, data = s5d)
+s5_L2 <- lm(trust ~ cond + age + conservatism + male + white, data = s5d)
+cat(sprintf("L1: cond B = %.2f, beta = %.2f (SI: 11.93, .35)\n",
+            coef(s5_L1)["cond"], std_beta(s5_L1, "cond")))
+cat(sprintf("L2: cond B = %.2f, beta = %.2f (SI: 12.93, .37); age B = %.2f, beta = %.2f (SI: 0.29, .26); N = %d\n",
+            coef(s5_L2)["cond"], std_beta(s5_L2, "cond"),
+            coef(s5_L2)["age"], std_beta(s5_L2, "age"), nobs(s5_L2)))
+```
+
+## SI: willingness to be close friends, by conflict expectation (`tbl:s5-friendship-ce`)
+
+2 × 3 between-subjects factorial ANOVA (Type III, as in SPSS) of willingness to befriend the
+target on condition × friendship-conflict-expectation group (`CE_Fri_HL`: 1 = low,
+2 = ambivalent, 3 = high). Computed from the archived N = 288 sample, the statistics are:
+condition *F*(1, 282) = 21.46, *p* < .001,
+η²p = .07; CE group *F*(2, 282) = 3.27, *p* = .039, η²p = .02; interaction
+*F*(2, 282) = 0.67, *p* = .513, η²p = .005; and the ambivalent-sacred cell was corrected to
+*M* = 78.34, *SD* = 21.87, *n* = 94 (the earlier SPSS run had retained one case absent from
+the archived analytic sample).
+
+```{r s5-friendship}
+s5f <- s5 %>% mutate(friend = as.numeric(Relations_1),
+                     cond = factor(Cond_01), ce = factor(CE_Fri_HL))
+s5_fce <- anova_type3(friend ~ cond * ce, s5f)
+kable(s5_fce, caption = "Friendship-CE factorial ANOVA (Type III). SI: condition F(1,282)=21.46; CE F(2,282)=3.27, p=.039; interaction F(2,282)=0.67, p=.513.")
+s5_fce_means <- s5f %>% filter(!is.na(ce), !is.na(friend)) %>%
+  group_by(ce, cond) %>% summarise(M = round(mean(friend),2), SD = round(sd(friend),2), n = n(), .groups="drop")
+kable(s5_fce_means, caption = "Study 5 willingness-to-befriend means by conflict-expectation group and condition (tbl:s5-friendship-ce).")
+
+# Cell-by-cell audit of tbl:s5-friendship-ce (rows: CE group x condition; SI as corrected).
+s5_fce_claim <- tibble(
+  ce = factor(rep(1:3, each = 2)), cond = factor(rep(0:1, 3)),
+  M  = c(61.71, 73.27, 56.63, 78.34, 46.72, 67.09),
+  SD = c(27.36, 32.02, 26.36, 21.87, 27.43, 28.29),
+  n  = c(35, 15, 93, 94, 18, 33))
+s5_fce_cmp <- dplyr::left_join(s5_fce_claim, s5_fce_means, by = c("ce", "cond"),
+                               suffix = c("_SI", "_computed"))
+# Strict gate: archived cell means, SDs, and n's must match the SI table exactly.
+stopifnot("tbl:s5-friendship-ce cells do not reproduce" = all(
+  abs(s5_fce_cmp$M_SI - s5_fce_cmp$M_computed) <= .006,
+  abs(s5_fce_cmp$SD_SI - s5_fce_cmp$SD_computed) <= .006,
+  s5_fce_cmp$n_SI == s5_fce_cmp$n_computed))
+cat("tbl:s5-friendship-ce reproduces (M, SD, n) in all six cells, including the corrected\n",
+    "ambivalent-sacred cell. Group ns low/ambivalent/high = ",
+    paste(table(s5f$ce[!is.na(s5f$friend)]), collapse = "/"),
+    " (SI: 50/187/51); condition ns non-sacred/sacred = ",
+    paste(table(s5f$cond[!is.na(s5f$friend)]), collapse = "/"),
+    " (SI: 146/142).\n", sep = "")
+```
+
+## Audit: Study 5 SI
+
+```{r s5-si-audit}
+r_num <- function(cell) as.numeric(sub("[*]+$", "", cell))
+gic <- function(tab, row, col) tab[[col]][tab$Variable == row]
+s5_pm <- function(v, c) s5_param[[c]][s5_param$Variable == v]
+s5_cf <- function(v, c) s5_conflict[[c]][s5_conflict$Outcome == v]
+s5_si_audit <- dplyr::bind_rows(
+  audit_row("Intercorr r(Trust, Social Acc.)", r_num(gic(s5_ic, "2. Social Acc.", "1.")), 0.65, 0.02, 2),
+  audit_row("Intercorr r(Trust, Environment)", r_num(gic(s5_ic, "8. Environment", "1.")), 0.36, 0.02, 2),
+  audit_row("Intercorr Trust mean",            gic(s5_ic, "1. Trust", "Mean"),            74.12, 0.3, 2),
+  audit_row("Intercorr Environment mean",      gic(s5_ic, "8. Environment", "Mean"),       0.59, 0.02, 2),
+  audit_row("By-cond sacred Trust mean",       gic(s5_sac, "1. Trust", "Mean"),           80.27, 0.3, 2),
+  audit_row("By-cond non-sacred Trust mean",   gic(s5_non, "1. Trust", "Mean"),           68.14, 0.3, 2),
+  audit_row("Shapiro Trust W",                 shapiro_table(s5, c(T="Trust_Att"))$W,      0.95, 0.01, 2),
+  audit_row("Shapiro Harm W",                  shapiro_table(s5, c(H="Never_Harm"))$W,     0.80, 0.01, 2),
+  audit_row("Parametric trust t",              s5_pm("Trustworthiness","t"),               6.46, 0.1, 2),
+  audit_row("Parametric trust d",              s5_pm("Trustworthiness","d"),               0.76, 0.03, 2),
+  audit_row("Parametric acceptance t",         s5_pm("Social acceptance","t"),             5.95, 0.1, 2),
+  audit_row("Parametric acceptance d",         s5_pm("Social acceptance","d"),             0.70, 0.03, 2),
+  audit_row("Parametric harm t",               s5_pm("Harm sacralization","t"),            2.30, 0.1, 2),
+  audit_row("Parametric authority t (ns)",     s5_pm("Authority sacralization","t"),       1.25, 0.1, 2),
+  audit_row("Social conflict overall Z",       s5_cf("Overall","Z"),                       2.55, 0.05, 2),
+  audit_row("Social conflict friend Z",        s5_cf("Close friend","Z"),                  3.87, 0.05, 2),
+  audit_row("Demographics L2 cond B (approx.)", coef(s5_L2)["cond"],                        NA, 0.3, 2),
+  audit_row("Demographics L2 age B",           coef(s5_L2)["age"],                         0.29, 0.03, 2),
+  # SI friendship-CE and overall-conflict ANOVA F's audit in their own chunks above; the
+  # condition F is repeated here for the summary table.
+  audit_row("Friendship-CE condition F",       s5_fce$F[s5_fce$Term == "cond"],          21.46, 0.05, 2),
+  audit_row("Friendship-CE group F",           s5_fce$F[s5_fce$Term == "ce"],             3.27, 0.05, 2),
+  audit_row("Friendship-CE interaction F",     s5_fce$F[s5_fce$Term == "cond:ce"],        0.67, 0.05, 2)
+)
+kable(s5_si_audit, align = "lrrl")
+
+cat("Note: the demographics-robustness B reproduces the SI's *qualitative* result (condition\n",
+    "remains highly significant) but not its exact value: the SI's SPSS moderation model used a\n",
+    "listwise-complete sample (df = 246) that the archive does not identify. That row is reported\n",
+    "descriptively. The friendship-CE ANOVA is computed from the archived N = 288 sample\n",
+    "(Type III), which this document reproduces exactly.\n", sep="")
+```
+
+---
+
+# Discriminant validity of the five mediators (collinearity, relative weights, dominance)
+
+The halo raises all five foundations together, so they are highly intercorrelated and the
+competing-mediator **b-paths** partition their shared variance in a collinearity-sensitive
+way: coefficients can flip sign (suppression), and the "winning" mediator can be an artifact
+of which one happens to absorb the common variance. We therefore corroborate the pathway
+ranking with two order-independent, suppression-free decompositions of the model $R^2$ ---
+Johnson's (2000) **relative weights** and Budescu's (1993) **general dominance** --- and report
+**VIFs** to quantify the collinearity directly. A sign flip between the zero-order `r_trust`
+and the partial `beta_partial` is the suppression tell behind the negative indirect effects;
+a VIF above ~5 would signal disabling collinearity.
+
+```{r discriminant}
+source(file.path(find_data_root(), "scripts", "R", "collinearity_helpers.R"))
+
+s4_rw <- collinearity_table(as.data.frame(s4), "Trust_Att",
+                            unname(s4_meds), names(s4_meds), seed = 2024L)
+kable(s4_rw, caption = sprintf(
+  "Study 4: relative importance of the five foundations for trust ($R^2$ = %.3f). RW_pct = Johnson relative weight (%% of $R^2$); Dominance_pct = general dominance (%% of $R^2$); RW_lo/hi = bootstrap 95%% CI on the relative-weight share.",
+  attr(s4_rw, "R2")))
+
+s5_rw <- collinearity_table(as.data.frame(s5), "Trust_Att",
+                            unname(s5_meds), names(s5_meds), seed = 2024L)
+kable(s5_rw, caption = sprintf(
+  "Study 5: relative importance of the five foundations for trust ($R^2$ = %.3f). Columns as above.",
+  attr(s5_rw, "R2")))
+```
+
+Under these order-independent decompositions Study 4 does **not** rank Harm first (Fairness
+edges it and every bootstrap CI overlaps): a single between-subjects scenario cannot separate
+the near-collinear foundations. Study 5 puts Harm first (~39% of $R^2$), consistent with the
+b-path story, though its CI is wide. All VIFs sit below 5, so the collinearity is moderate,
+not disabling.
+
+---
+
+# Audit summary
+
+```{r summary, echo=FALSE}
+all_audit <- dplyr::bind_rows(
+  dplyr::mutate(s4_audit,    Study = "Study 4",    .before = 1),
+  dplyr::mutate(s4_si_audit, Study = "Study 4 SI", .before = 1),
+  dplyr::mutate(s5_audit,    Study = "Study 5",    .before = 1),
+  dplyr::mutate(s5_si_audit, Study = "Study 5 SI", .before = 1)
+)
+n_match  <- sum(all_audit$Check == "match")
+n_close  <- sum(all_audit$Check == "close")
+n_differ <- sum(all_audit$Check == "DIFFERS")
+cat(sprintf("Audited claims: %d | match: %d | close (bootstrap/rounding noise): %d | DIFFERS: %d\n",
+            nrow(all_audit), n_match, n_close, n_differ))
+if (n_differ > 0) {
+  cat("\nClaims that differ from the manuscript:\n")
+  print(knitr::kable(subset(all_audit, Check == "DIFFERS",
+                            select = c("Study", "Quantity", "Manuscript", "Computed"))))
+}
+```
+
+**Reading the result.** The competing-mediator point estimates reproduce the manuscript to
+two decimals (Study 4: Harm 4.46, Fairness 4.34; Study 5: Harm 1.24); the bootstrap CIs
+sit within noise of the published intervals. The qualitative pattern --- full halo with a
+Harm--Fairness route in Study 4, partial halo with a Harm-only route in Study 5 ---
+reproduces exactly. The single substantive flag is **Study 5's sample size (288, not
+289)**.
+
+> **Provenance caution.** The legacy comment blocks in `scripts/R/04_study4.R` and
+> `scripts/R/05_study5.R` cite *stale* "manuscript" values (Study 4's were the Study 6
+> numbers; Study 5's `2.71` does not appear in the current text). The targets audited here
+> are taken from the **current manuscript** (Results, paras on Studies 4--5), which the
+> data confirm.
+
+---
+
+# Reproducibility record
+
+```{r session, echo=FALSE}
+si <- sessionInfo()
+cat("R version:", si$R.version$version.string, "\n")
+cat("Platform :", si$platform, "\n")
+cat(sprintf("Seeds    : %d (global); %d (bootstrap); resamples = %d\n",
+            20260619L, BOOT_SEED, N_BOOT))
+cat("\nKey package versions:\n")
+for (p in c("haven", "dplyr", "lavaan", "ggplot2", "tibble", "knitr", "rmarkdown")) {
+  v <- tryCatch(as.character(packageVersion(p)), error = function(e) "not installed")
+  cat(sprintf("  %-10s %s\n", p, v))
+}
+```
+
+```{r session-full, echo=FALSE}
+sessionInfo()
+```

@@ -1,5 +1,5 @@
 osf
-*.html          # remove this line for the final render-and-commit
+*.html
 .Rhistory
 .RData
 .DS_Store
