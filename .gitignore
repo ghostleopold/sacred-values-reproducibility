@@ -1,0 +1,8 @@
+osf
+*.html          # remove this line for the final render-and-commit
+.Rhistory
+.RData
+.DS_Store
+*_cache/
+*_files/
+.Rproj.user/
