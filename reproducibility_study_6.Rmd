@@ -67,17 +67,17 @@ BOOT_SEED <- 2024L
 ```
 
 ```{r data-root}
-find_data_root <- function(start = getwd(), marker = "osf") {
+find_data_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
     if (identical(parent, d))
-      stop("Could not locate the 'osf' data directory from ", start, call. = FALSE)
+      stop("Could not locate the 'data' directory from ", start, call. = FALSE)
     d <- parent
   }
 }
-s6_file <- file.path(find_data_root(), "osf", "Study 6 - Sacralization of Moral Foundations",
+s6_file <- file.path(find_data_root(), "data", "Study 6 - Sacralization of Moral Foundations",
                      "OSF SV Trust - Study 6 Long Dataset.sav")
 stopifnot("Study 6 .sav not found" = file.exists(s6_file))
 cat("Study 6 data:\n  ", s6_file, "\n")
@@ -709,7 +709,7 @@ true first block). The first-block subset is rebuilt from scratch off the rank c
 
 ```{r fb-recover}
 # Recover presentation order from the WIDE dataset's per-foundation rank columns.
-s6_wide_file <- file.path(find_data_root(), "osf",
+s6_wide_file <- file.path(find_data_root(), "data",
                           "Study 6 - Sacralization of Moral Foundations",
                           "OSF SV Trust - Study 6 Wide Dataset.sav")
 stopifnot("Study 6 wide .sav not found" = file.exists(s6_wide_file))

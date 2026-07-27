@@ -86,27 +86,27 @@ suppressPackageStartupMessages({
 set.seed(20260619)
 ```
 
-The data live in an `osf/` folder (a copy of the OSF archive at
+The data live in a `data/` folder (a copy of the OSF archive at
 <https://osf.io/ju9rq/>). Rather than hard-code a path, we locate that folder by walking
 up from wherever this file is knitted. To run against data stored elsewhere, set
 `DATA_DIR` by hand in the chunk below.
 
 ```{r data-root}
 # Walk up the directory tree until we find a folder containing `marker`.
-find_data_root <- function(start = getwd(), marker = "osf") {
+find_data_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
     if (identical(parent, d)) {
-      stop("Could not locate the '", marker, "' data directory by walking up from ",
+      stop("Could not locate the '", marker, "' directory by walking up from ",
            start, ".\n  Set DATA_DIR manually in this chunk.", call. = FALSE)
     }
     d <- parent
   }
 }
 
-DATA_DIR <- file.path(find_data_root(), "osf")   # <- override here if needed
+DATA_DIR <- file.path(find_data_root(), "data")   # <- override here if needed
 
 s1_file <- file.path(DATA_DIR, "Study 1 - Sacred Ring",    "OSF SV Trust - Study 1.sav")
 s2_file <- file.path(DATA_DIR, "Study 2 - Pork Investment", "OSF SV Trust - Study 2.sav")

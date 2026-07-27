@@ -27,18 +27,18 @@ suppressPackageStartupMessages({
 })
 set.seed(20260709)
 
-# --- locate data + output (osf symlink at repo root) ------------------------
-find_root <- function(start = getwd(), marker = "osf") {
+# --- locate data + output (data symlink at repo root) ------------------------
+find_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
-    if (identical(parent, d)) stop("Cannot locate 'osf/' from ", start)
+    if (identical(parent, d)) stop("Cannot locate 'data/' from ", start)
     d <- parent
   }
 }
 REPO    <- find_root()
-S3_DIR  <- file.path(REPO, "osf", "Study 3 - Lab Study",
+S3_DIR  <- file.path(REPO, "data", "Study 3 - Lab Study",
                      "Replication Documentation", "Processing and Analysis", "Analysis Data")
 FIG_DIR <- file.path(REPO, "Figures")
 dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)

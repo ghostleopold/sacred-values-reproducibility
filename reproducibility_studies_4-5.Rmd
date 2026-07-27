@@ -85,20 +85,20 @@ BOOT_SEED <- 2024L        # seed fixed inside each model for reproducible CIs
 ```
 
 ```{r data-root}
-find_data_root <- function(start = getwd(), marker = "osf") {
+find_data_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
     if (identical(parent, d)) {
-      stop("Could not locate the '", marker, "' data directory by walking up from ",
+      stop("Could not locate the '", marker, "' directory by walking up from ",
            start, ".\n  Set DATA_DIR manually in this chunk.", call. = FALSE)
     }
     d <- parent
   }
 }
 
-DATA_DIR <- file.path(find_data_root(), "osf")   # <- override here if needed
+DATA_DIR <- file.path(find_data_root(), "data")   # <- override here if needed
 
 s4_file <- file.path(DATA_DIR,
   "Study 4 - Pork Investment - Moral Character Mediation", "OSF SV Trust - Study 4.sav")
