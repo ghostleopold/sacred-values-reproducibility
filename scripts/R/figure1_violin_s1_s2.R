@@ -11,17 +11,17 @@ suppressPackageStartupMessages({
 set.seed(20260619)
 
 # --- data root ----------------------------------------------------------
-find_data_root <- function(start = getwd(), marker = "osf") {
+find_data_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
-    if (identical(parent, d)) stop("Cannot locate 'osf/' from ", start)
+    if (identical(parent, d)) stop("Cannot locate 'data/' from ", start)
     d <- parent
   }
 }
 
-DATA_DIR <- file.path(find_data_root(), "osf")
+DATA_DIR <- file.path(find_data_root(), "data")
 OUT_DIR  <- file.path(find_data_root(), "Figures")
 
 composite <- function(df, items) {

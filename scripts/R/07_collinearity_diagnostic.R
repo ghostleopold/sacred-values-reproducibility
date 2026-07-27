@@ -13,20 +13,20 @@
 #   - a bootstrap 95% CI on the relative-weight share (cluster bootstrap on
 #     participant for the within-subjects Study 6).
 #
-# Read-only: reads osf/ .sav files, writes only to scripts/R/_outputs/.
+# Read-only: reads data/ .sav files, writes only to scripts/R/_outputs/.
 # Run from project root:  Rscript scripts/R/07_collinearity_diagnostic.R
 # ---------------------------------------------------------------------------
 
 suppressMessages({ library(haven) })
 
-# Locate project root (dir containing the `osf` symlink), like the .Rmd pipelines.
-find_data_root <- function(start = getwd(), marker = "osf") {
+# Locate project root (dir containing the `data` symlink), like the .Rmd pipelines.
+find_data_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
     if (identical(parent, d))
-      stop("Could not locate the 'osf' data directory from ", start, call. = FALSE)
+      stop("Could not locate the 'data' directory from ", start, call. = FALSE)
     d <- parent
   }
 }
@@ -59,7 +59,7 @@ report <- function(title, tab) {
 results <- list()
 
 # ---- Study 4 (between-subjects, N = 289) -----------------------------------
-d4 <- read_sav(file.path(ROOT, "osf",
+d4 <- read_sav(file.path(ROOT, "data",
   "Study 4 - Pork Investment - Moral Character Mediation",
   "OSF SV Trust - Study 4.sav"))
 d4 <- d4[d4$Exclusions == 0, ]
@@ -69,7 +69,7 @@ results$S4 <- collinearity_table(as.data.frame(d4), "Trust_Att", s4_meds, LABELS
 report("STUDY 4 (N = 289, between-subjects)", results$S4)
 
 # ---- Study 5 (between-subjects, N = 288) -----------------------------------
-d5 <- read_sav(file.path(ROOT, "osf",
+d5 <- read_sav(file.path(ROOT, "data",
   "Study 5 - Environmental Sacred Values", "OSF Study 5.sav"))
 d5 <- d5[d5$Exclusion == 0, ]
 s5_meds <- c("Never_Harm", "Never_Fair", "Never_Auth", "Never_InGrp", "Never_Pure")
@@ -78,7 +78,7 @@ results$S5 <- collinearity_table(as.data.frame(d5), "Trust_Att", s5_meds, LABELS
 report("STUDY 5 (N = 288, between-subjects)", results$S5)
 
 # ---- Study 6 (within-subjects; cluster bootstrap on participant) -----------
-d6 <- read_sav(file.path(ROOT, "osf",
+d6 <- read_sav(file.path(ROOT, "data",
   "Study 6 - Sacralization of Moral Foundations",
   "OSF SV Trust - Study 6 Long Dataset.sav"))
 d6 <- d6[d6$Exclusions == 0, ]

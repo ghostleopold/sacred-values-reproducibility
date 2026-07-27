@@ -28,12 +28,12 @@ suppressPackageStartupMessages({
 set.seed(20260629)
 
 # --- paths ------------------------------------------------------------------
-find_root <- function(start = getwd(), marker = "osf") {
+find_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
-    if (identical(parent, d)) stop("Cannot locate 'osf/' from ", start)
+    if (identical(parent, d)) stop("Cannot locate 'data/' from ", start)
     d <- parent
   }
 }
@@ -56,7 +56,7 @@ MEDS <- c(Harm = "Harm_Sacred_Prop", Fairness = "Fair_Sacred_Prop",
           Purity = "Pure_Sacred_Prop")
 
 # --- load Study 6 long data -------------------------------------------------
-d6 <- read_sav(file.path(ROOT, "osf",
+d6 <- read_sav(file.path(ROOT, "data",
   "Study 6 - Sacralization of Moral Foundations",
   "OSF SV Trust - Study 6 Long Dataset.sav")) |>
   filter(Exclusions == 0)

@@ -21,14 +21,12 @@ The rendered `.html` reports let you read the full output, including all tables 
 
 ## Data layout the scripts expect
 
-The notebooks and scripts locate the data by walking up the directory tree for a folder named `osf/`. To run them:
+The OSF project already ships the study data in a folder named `data/`, sitting beside this `Analysis code and reproducibility/` folder. The notebooks and scripts locate it automatically by walking up the directory tree for that `data/` folder — so no manual setup is needed. To run them:
 
-1. Download the six study-data folders from this OSF project (the `Study 1 …` – `Study 6 …` folders).
-2. Put them, **with their names unchanged**, inside a folder named `osf/`.
-3. Place that `osf/` folder beside the notebooks — i.e. inside this `Analysis code & reproducibility/` folder, as a sibling of `scripts/`.
-4. Knit each `.Rmd`.
+1. Download the whole OSF project, keeping its folder structure intact — you get `data/` (the six `Study 1 …` – `Study 6 …` folders) next to `Analysis code and reproducibility/`.
+2. Knit each `.Rmd` (or run any of the standalone scripts).
 
-**Do not rename the data files or study folders.** The scripts reference them by exact name and path; renaming will break the reproduction.
+**Do not rename the `data/` folder, the study folders, or the data files.** The scripts reference them by exact name and path; renaming will break the reproduction.
 
 ## Which file feeds which study
 

@@ -33,19 +33,19 @@ suppressPackageStartupMessages({
 })
 set.seed(20260619)
 
-## ---- locate data + repo (the 'osf' symlink sits in the repo root) ----------
-find_root <- function(start = getwd(), marker = "osf") {
+## ---- locate data + repo (the 'data' symlink sits in the repo root) ----------
+find_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
     if (identical(parent, d))
-      stop("Could not locate the 'osf' data directory from ", start, call. = FALSE)
+      stop("Could not locate the 'data' directory from ", start, call. = FALSE)
     d <- parent
   }
 }
 REPO    <- find_root()
-S3_DIR  <- file.path(REPO, "osf", "Study 3 - Lab Study",
+S3_DIR  <- file.path(REPO, "data", "Study 3 - Lab Study",
                      "Replication Documentation", "Processing and Analysis", "Analysis Data")
 s3_file <- file.path(S3_DIR, "combined-ult-trust-withfactors.dta")
 stopifnot("Study 3 analysis .dta not found" = file.exists(s3_file))
