@@ -24,19 +24,10 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 # What this document is
 
-Study 6 (N = 972) is the most stringent test of the harm pathway: a fully crossed
-**within-subjects** design in which each participant evaluates one vignette per moral
-foundation (Harm, Fairness, Loyalty, Authority, Purity), each randomly sacred or
-non-sacred. It asks whether the route to trust still runs through perceived *harm-aversion*
-even when the scenario foregrounds a different foundation.
-
 This pipeline reproduces, from the raw OSF long-format data, the three Study 6 results the
 paper reports: the **main effect** of sacred condition on trustworthiness, the **moral halo**
 (the sacred display raising perceived sacralization on every foundation), and the
 **multilevel parallel mediation** showing perceived Harm to be the dominant route to trust.
-It follows the same push-button standard as the other pipelines (self-contained, data
-auto-located, sample sizes asserted, advance targets, `sessionInfo()` footer). Targets are
-the numbers the current main text and SI print; the paper stands alone.
 
 > **Runtime.** The multilevel mediation uses a clustered bootstrap (5,000 resamples on 4,860
 > rows) and takes ~3 minutes; it is **cached** (`_rmd_cache/study-6/`), so re-knits are
@@ -388,7 +379,7 @@ order-independent, suppression-free decompositions of the model $R^2$ --- Johnso
 participant --- and report **VIFs** to quantify the collinearity. Note that the b-path ratio
 ("~6x the next pathway") shrinks under this decomposition to roughly 2x: relative weights
 return to Fairness and Authority the shared variance the partialling had stripped from them.
-The key result is that Harm remains the single largest contributor with a bootstrap CI that
+Harm remains the single largest contributor with a bootstrap CI that
 does not overlap any other foundation.
 
 ```{r discriminant}
@@ -439,12 +430,6 @@ cat("Mediates trust:", paste(ind$Foundation[ind$Mediates == "yes"], collapse = "
     "\n  (manuscript: Harm dominant; Fairness and Authority small but significant; Loyalty and Purity null.)\n")
 ```
 
-**Reading the result.** A broad halo in (the sacred display raises perceived sacralization on
-all five foundations by a similar, large amount, standardized $a$ between ~.51 and .60), but a
-narrow door out (only perceived Harm carries a substantial path to trust, $\beta \approx .29$;
-Fairness and Authority small, Loyalty and Purity null). The harm pathway dominates even though
-the within-subjects design lets every foundation compete on equal footing --- the paper's
-central claim for the mechanism.
 
 ---
 
@@ -688,13 +673,9 @@ cat(sprintf("Condition x Foundation interaction: F(4, %.1f) = %.2f, p < .001 (SI
 The SI reports a between-subjects robustness check on each participant's **first vignette block**:
 two-way ANOVAs (Vignette Condition x First-Block Group) on trust (H1) and on each of the five
 sacralization scores (H2), and a parallel mediation controlling for First-Block Group (H3). The
-presentation order needed to build this subset is not carried in the **long** dataset, which holds
-only broken order artifacts (`OrderCounter` is uniformly 0; a mangled
-`Position___e___Field_OrderCounter_` field that -- because a Qualtrics pipe in its name never
-resolved -- was overwritten each block and so holds only the *last* block; and a `FirstBlockGroup`
-variable that silently miscodes Fairness-first participants as `NA`).
+presentation order needed to build this subset is not carried in the **long** dataset.
 
-**The presentation order is in fact fully recoverable -- from the wide dataset.** The wide file
+**The presentation order is recoverable from the wide dataset.** The wide file
 (`OSF SV Trust - Study 6 Wide Dataset.sav`, not read elsewhere in this pipeline) carries five
 columns the long export dropped: `Harm_Block_1`, `Fair_Block_1`, `Authority_Block_1`,
 `Loyalty_Block_1`, `Purity_Block_1`, each valued **1--5 = the presentation rank of that
@@ -833,7 +814,7 @@ cat(sprintf("First block: Harm indirect = %.2f [%.2f, %.2f]; mediating foundatio
 
 The first-block-only analysis reproduces the paper's story on a clean between-subjects footing and
 the full N = 972: a large condition effect on trust, a broad halo across all five foundations, and
-a mediation dominated by perceived Harm.
+a mediation dominated by perceived sacralization of the Harm foundation.
 
 ## Audit: Study 6 SI
 
