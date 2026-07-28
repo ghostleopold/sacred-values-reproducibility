@@ -31,20 +31,9 @@ knitr::opts_chunk$set(
 
 This is a **single, self-contained reproducibility pipeline** for Studies 1 and 2 of
 *Sacred values as index signals of trustworthy character*. Knitting it from a clean R
-session reproduces, from the raw OSF data, **every statistical test reported for these
+session reproduces, from the raw data, **every statistical test reported for these
 two studies --- in both the main text and the Supporting Information (SI)** --- and audits
-each computed value against the number printed in the paper. Concretely it covers:
-
-- the headline trustworthiness contrast, its effect size and probability of superiority
-  (CLES), and the out-group replication (main text);
-- the low-sanctity-observer robustness check (main text);
-- the pre-registered *parametric* tests, trait by trait and relationship by relationship (SI);
-- the sensitivity analysis *without exclusions* (SI);
-- the exploratory *selfishness* attribution analyses, including the single and dual
-  mediation models (SI);
-- the Shapiro-Wilk normality tests that motivate the non-parametric approach (SI); and
-- the inter-correlation matrices among the key variables (SI), plus the Study 2
-  sacralizing-of-friendship and closeness-to-community effects (SI).
+each computed value against the number printed in the paper.
 
 **Design standard: push-button replication** (Wood, Müller & Brown, *PLOS ONE* 2018):
 a third party should be able to take the archived data and code and *"push the button"*
@@ -60,10 +49,6 @@ file is built to satisfy their criteria:
 | Key results declared in advance | Reported values are written into a target table *before* the data are analysed, then compared automatically. |
 | Documented software environment | Full `sessionInfo()` and package versions are printed at the end. |
 | Reproducible randomness | A single global seed is set; every bootstrap additionally fixes its own seed. |
-
-No original SPSS syntax survived, so the analyses here are a from-scratch rebuild guided
-by the OSF variable keys. The fact that the rebuilt numbers match the paper (see the
-audit tables) is itself the evidence that the rebuild is faithful.
 
 ---
 
@@ -121,8 +106,7 @@ cat("Data directory:\n  ", DATA_DIR, "\n")
 
 ## Statistical helper functions {.tabset}
 
-These functions do all the statistical work. They are defined here, in the open, so a
-sceptical reader can audit every line. (Click the **Code** toggle to collapse them.)
+These functions do all the statistical work. (Click the **Code** toggle to collapse them.)
 
 ```{r helpers}
 # Mean of a set of items, coercing SPSS labelled columns to plain numeric -----
@@ -891,7 +875,7 @@ document line by line with the SI:
 # Reproducibility record
 
 Everything above ran from the raw `.sav` files with the single seed set at the top. The
-software environment is recorded below so a future reader can reproduce the bit-level
+software environment is recorded below so a future reader can reproduce the
 results.
 
 ```{r session, echo=FALSE}
