@@ -35,4 +35,4 @@ The OSF project already ships the study data in a folder named `data/`, sitting 
 
 ## Requirements
 
-A recent version of R with the packages named at the top of each notebook, including `haven`, `here`, the `tidyverse`, `lavaan`, and `mgcv`. Study 3's item-response factor analysis additionally uses `mirt`. Each notebook prints its session information so the exact environment can be checked.
+A recent version of R, plus `knitr` and `rmarkdown` to knit the notebooks. The authoritative dependency list for any given notebook is its `packages` chunk, at the top of the file; the standalone scripts likewise load what they need in their opening lines. Across all of them the third-party packages are `car`, `coin`, `dplyr`, `effectsize`, `ggplot2`, `haven`, `lavaan`, `lme4`, `lmerTest`, `mgcv`, `tibble`, and `tidyr`. No notebook needs all twelve. Each prints its session information at the end, so the exact environment that produced the rendered `.html` can be checked.
