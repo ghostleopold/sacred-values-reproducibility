@@ -1676,7 +1676,7 @@ Reproducibility Pipeline (Study 3)</h1>
 <h3 class="subtitle">The incentivized trust game: behaviourally real and
 warranted trust</h3>
 <h4 class="author">Sacred Values project</h4>
-<h4 class="date">Knitted 27 July 2026</h4>
+<h4 class="date">Knitted 28 July 2026</h4>
 
 </div>
 
@@ -1717,10 +1717,8 @@ specifications (<code>s3-alt-specs</code>); the post-game
 correlation (<code>s3-survey-revision</code>); the
 <strong>revelation-preference</strong> analysis — the preregistered
 chi-square and the conservative mixed-effects logistic regression
-(<code>s3-mixed-logit</code>); the <strong>trust-connoting
-content</strong> bake-off (<code>s3-trust-index</code>) and its
-factor-loading companion; and the <strong>religiosity</strong> rank-sum
-test and table (<code>s3-religiosity</code>).</p>
+(<code>s3-mixed-logit</code>); and the <strong>religiosity</strong>
+rank-sum test and table (<code>s3-religiosity</code>).</p>
 <p>The trustworthiness predictor is <code>SacPers</code> (sacred values
 <em>held</em>) by project decision — the conceptually correct measure
 for “do people who hold sacred values behave more trustworthily?” and
@@ -2862,10 +2860,9 @@ trustee’s.</p>
 analysis the paper reports <strong>only in the Supporting
 Information</strong> for Study 3: the post-game belief correlations, the
 willingness-to-revise correlation, the revelation-preference analysis
-(preregistered chi-square and the mixed-effects logit), the
-trust-connoting content bake-off and its factor-loading companion, and
-the religiosity rank-sum table. Each computed value is collected into
-the SI audit table at the end of the section.</p>
+(preregistered chi-square and the mixed-effects logit), and the
+religiosity rank-sum table. Each computed value is collected into the SI
+audit table at the end of the section.</p>
 </blockquote>
 <div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" tabindex="-1"></a><span class="co"># Extra archives used only by the SI analyses below.</span></span>
 <span id="cb68-2"><a href="#cb68-2" tabindex="-1"></a>tc    <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="fu">file.path</span>(S3_DIR, <span class="st">&quot;trust-combined.dta&quot;</span>))            <span class="co"># 242, trust game</span></span>
@@ -3052,330 +3049,8 @@ comes from Stata’s <code>melogit</code> Wald test;
 coefficient (not the <em>p</em>) is what the audit targets.</p>
 </blockquote>
 </div>
-<div id="did-specific-trust-implying-statements-explain-the-result-si-bake-off" class="section level2" number="4.13">
-<h2><span class="header-section-number">4.13</span> Did specific
-trust-implying statements explain the result? (SI bake-off)</h2>
-<p>A natural alternative to the sacred-values account is that the Study
-3 effect was driven not by sacred values in general but by the
-<em>content</em> of a handful of inventory statements that, on their
-face, imply the speaker is trustworthy. The OSF
-<code>hypothesis 2 code.do</code> (its “trust implying value statements”
-block) builds four indices from the seven trust-connoting statements and
-regresses the outcomes on each one <em>singly</em>; the SI then compares
-them, loosely, to the general sacred-values relationship. This section
-sharpens that comparison into an explicit head-to-head and reproduces
-the SI table.</p>
-<p>The four indices, exactly as constructed in
-<code>import data.do</code> (lines 409–426):</p>
-<ul>
-<li><code>trust_sp_index</code> — number of the seven trust-connoting
-statements the trustee <strong>endorsed</strong> (0–7). Defined for all
-121 trustees.</li>
-<li><code>trust_sp_sacred_index</code> — of those, the number also
-<strong>held sacred</strong> (0–7).</li>
-<li><code>trust_revealed_index</code> — of the <strong>two</strong>
-trust-connoting statements eligible to be revealed before the second
-trust game, the number the trustee <strong>revealed</strong> in the
-trustworthy direction (0–2).</li>
-<li><code>trust_sacred_revealed_index</code> — of those two, the number
-revealed <em>and</em> held sacred (0–2).</li>
-</ul>
-<p><strong>The n = 88 quirk.</strong> The two revealed indices are built
-as a sum of two per-statement terms, each left missing when its
-statement was concealed. In Stata (and so in the archived
-<code>.dta</code>) any arithmetic touching a missing value returns
-missing, so the index goes missing whenever <em>either</em> eligible
-statement was concealed — it is defined only for trustees who revealed
-<strong>both</strong>. That is 88 of 121 (91 revealed statement 25, 100
-revealed statement 33, 88 revealed both; “at least one” would have been
-103). The revealed-content analyses therefore rest on <em>n</em> = 88,
-against <em>n</em> = 121 for the held-content and benchmark measures.
-The check below confirms the count.</p>
-<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" tabindex="-1"></a>r25 <span class="ot">&lt;-</span> <span class="sc">!</span><span class="fu">is.na</span>(trustees<span class="sc">$</span>trust_sp_25_rev)</span>
-<span id="cb88-2"><a href="#cb88-2" tabindex="-1"></a>r33 <span class="ot">&lt;-</span> <span class="sc">!</span><span class="fu">is.na</span>(trustees<span class="sc">$</span>trust_sp_33_rev)</span>
-<span id="cb88-3"><a href="#cb88-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;revealed stmt 25: %d | stmt 33: %d | BOTH: %d | AT LEAST ONE: %d</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb88-4"><a href="#cb88-4" tabindex="-1"></a>            <span class="fu">sum</span>(r25), <span class="fu">sum</span>(r33), <span class="fu">sum</span>(r25 <span class="sc">&amp;</span> r33), <span class="fu">sum</span>(r25 <span class="sc">|</span> r33)))</span></code></pre></div>
-<pre><code>## revealed stmt 25: 91 | stmt 33: 100 | BOTH: 88 | AT LEAST ONE: 103</code></pre>
-<div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;non-missing trust_revealed_index: %d  (= revealed both)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb90-2"><a href="#cb90-2" tabindex="-1"></a>            <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(trustees<span class="sc">$</span>trust_revealed_index))))</span></code></pre></div>
-<pre><code>## non-missing trust_revealed_index: 88  (= revealed both)</code></pre>
-<div id="helpers" class="section level3" number="4.13.1">
-<h3><span class="header-section-number">4.13.1</span> Helpers</h3>
-<p>Predictors are on different scales (0–7, 0–2, counts), so the
-like-for-like comparison is the <strong>standardized</strong>
-coefficient β; in a single-predictor model <em>R</em>² is just β².
-<code>uni_fit</code> returns the standardized simple regression for one
-predictor; <code>headtohead</code> adds each content index to the
-outcome’s general sacred-values benchmark (sacred values held for
-trustworthiness, net sacred values revealed for change in trust) and
-reports the index’s coefficient before and after that adjustment. Every
-model uses the rows complete on the variables it involves, so the
-<em>alone</em> and <em>adjusted</em> coefficients for a given index
-share one sample.</p>
-<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" tabindex="-1"></a><span class="co"># Standardized simple regression of dv on a single predictor xv. ----------------</span></span>
-<span id="cb92-2"><a href="#cb92-2" tabindex="-1"></a>uni_fit <span class="ot">&lt;-</span> <span class="cf">function</span>(data, dv, xv) {</span>
-<span id="cb92-3"><a href="#cb92-3" tabindex="-1"></a>  d <span class="ot">&lt;-</span> data[stats<span class="sc">::</span><span class="fu">complete.cases</span>(data[[dv]], data[[xv]]), ]</span>
-<span id="cb92-4"><a href="#cb92-4" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">scale</span>(d[[dv]])[, <span class="dv">1</span>] <span class="sc">~</span> <span class="fu">scale</span>(d[[xv]])[, <span class="dv">1</span>])</span>
-<span id="cb92-5"><a href="#cb92-5" tabindex="-1"></a>  co <span class="ot">&lt;-</span> <span class="fu">summary</span>(m)<span class="sc">$</span>coefficients</span>
-<span id="cb92-6"><a href="#cb92-6" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Predictor =</span> xv, <span class="at">n =</span> <span class="fu">nrow</span>(d), <span class="at">beta =</span> co[<span class="dv">2</span>, <span class="st">&quot;Estimate&quot;</span>],</span>
-<span id="cb92-7"><a href="#cb92-7" tabindex="-1"></a>         <span class="at">p =</span> co[<span class="dv">2</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>], <span class="at">R2 =</span> <span class="fu">summary</span>(m)<span class="sc">$</span>r.squared)</span>
-<span id="cb92-8"><a href="#cb92-8" tabindex="-1"></a>}</span>
-<span id="cb92-9"><a href="#cb92-9" tabindex="-1"></a></span>
-<span id="cb92-10"><a href="#cb92-10" tabindex="-1"></a><span class="co"># Univariate bake-off over several predictors, sorted by |beta|. ---------------</span></span>
-<span id="cb92-11"><a href="#cb92-11" tabindex="-1"></a>bakeoff <span class="ot">&lt;-</span> <span class="cf">function</span>(data, dv, predictors) {</span>
-<span id="cb92-12"><a href="#cb92-12" tabindex="-1"></a>  tab <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(predictors, <span class="cf">function</span>(p) <span class="fu">uni_fit</span>(data, dv, p)))</span>
-<span id="cb92-13"><a href="#cb92-13" tabindex="-1"></a>  tab[<span class="fu">order</span>(<span class="sc">-</span><span class="fu">abs</span>(tab<span class="sc">$</span>beta)), ]</span>
-<span id="cb92-14"><a href="#cb92-14" tabindex="-1"></a>}</span>
-<span id="cb92-15"><a href="#cb92-15" tabindex="-1"></a></span>
-<span id="cb92-16"><a href="#cb92-16" tabindex="-1"></a><span class="co"># Head-to-head table (reproduces SI Table s3-trust-index): each index alone, then</span></span>
-<span id="cb92-17"><a href="#cb92-17" tabindex="-1"></a><span class="co"># its standardized coefficient once the benchmark is added to the model. --------</span></span>
-<span id="cb92-18"><a href="#cb92-18" tabindex="-1"></a>headtohead <span class="ot">&lt;-</span> <span class="cf">function</span>(data, dv, benchmark, indices) {</span>
-<span id="cb92-19"><a href="#cb92-19" tabindex="-1"></a>  std <span class="ot">&lt;-</span> <span class="cf">function</span>(v) <span class="fu">scale</span>(v)[, <span class="dv">1</span>]</span>
-<span id="cb92-20"><a href="#cb92-20" tabindex="-1"></a>  <span class="co"># benchmark row: univariate only</span></span>
-<span id="cb92-21"><a href="#cb92-21" tabindex="-1"></a>  bench <span class="ot">&lt;-</span> <span class="fu">uni_fit</span>(data, dv, benchmark)</span>
-<span id="cb92-22"><a href="#cb92-22" tabindex="-1"></a>  rows <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">tibble</span>(<span class="at">Predictor =</span> benchmark, <span class="at">n =</span> bench<span class="sc">$</span>n, <span class="at">beta =</span> bench<span class="sc">$</span>beta,</span>
-<span id="cb92-23"><a href="#cb92-23" tabindex="-1"></a>                      <span class="at">p =</span> bench<span class="sc">$</span>p, <span class="at">beta_adj =</span> <span class="cn">NA_real_</span>, <span class="at">p_adj =</span> <span class="cn">NA_real_</span>))</span>
-<span id="cb92-24"><a href="#cb92-24" tabindex="-1"></a>  <span class="cf">for</span> (xv <span class="cf">in</span> indices) {</span>
-<span id="cb92-25"><a href="#cb92-25" tabindex="-1"></a>    u <span class="ot">&lt;-</span> <span class="fu">uni_fit</span>(data, dv, xv)</span>
-<span id="cb92-26"><a href="#cb92-26" tabindex="-1"></a>    d <span class="ot">&lt;-</span> data[stats<span class="sc">::</span><span class="fu">complete.cases</span>(data[[dv]], data[[xv]], data[[benchmark]]), ]</span>
-<span id="cb92-27"><a href="#cb92-27" tabindex="-1"></a>    m <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">std</span>(d[[dv]]) <span class="sc">~</span> <span class="fu">std</span>(d[[benchmark]]) <span class="sc">+</span> <span class="fu">std</span>(d[[xv]]))</span>
-<span id="cb92-28"><a href="#cb92-28" tabindex="-1"></a>    co <span class="ot">&lt;-</span> <span class="fu">summary</span>(m)<span class="sc">$</span>coefficients</span>
-<span id="cb92-29"><a href="#cb92-29" tabindex="-1"></a>    rows[[<span class="fu">length</span>(rows) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb92-30"><a href="#cb92-30" tabindex="-1"></a>      <span class="at">Predictor =</span> xv, <span class="at">n =</span> u<span class="sc">$</span>n, <span class="at">beta =</span> u<span class="sc">$</span>beta, <span class="at">p =</span> u<span class="sc">$</span>p,</span>
-<span id="cb92-31"><a href="#cb92-31" tabindex="-1"></a>      <span class="at">beta_adj =</span> co[<span class="dv">3</span>, <span class="st">&quot;Estimate&quot;</span>], <span class="at">p_adj =</span> co[<span class="dv">3</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>])</span>
-<span id="cb92-32"><a href="#cb92-32" tabindex="-1"></a>  }</span>
-<span id="cb92-33"><a href="#cb92-33" tabindex="-1"></a>  <span class="fu">bind_rows</span>(rows)</span>
-<span id="cb92-34"><a href="#cb92-34" tabindex="-1"></a>}</span></code></pre></div>
-</div>
-<div id="trustworthiness-wor_agg_avg" class="section level3" number="4.13.2">
-<h3><span class="header-section-number">4.13.2</span> Trustworthiness
-(<code>Wor_agg_avg</code>)</h3>
-<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" tabindex="-1"></a>worthy_uni <span class="ot">&lt;-</span> <span class="fu">bakeoff</span>(trustees, <span class="st">&quot;Wor_agg_avg&quot;</span>,</span>
-<span id="cb93-2"><a href="#cb93-2" tabindex="-1"></a>                      <span class="fu">c</span>(<span class="st">&quot;SacPers&quot;</span>, <span class="st">&quot;NetRev&quot;</span>, <span class="st">&quot;trust_sp_index&quot;</span>, <span class="st">&quot;trust_sp_sacred_index&quot;</span>))</span>
-<span id="cb93-3"><a href="#cb93-3" tabindex="-1"></a><span class="fu">kable</span>(worthy_uni, <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb93-4"><a href="#cb93-4" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;Trustworthiness: univariate standardized bake-off (sorted by |beta|). R2 = beta^2.&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Trustworthiness: univariate standardized bake-off (sorted by
-|beta|). R2 = beta^2.</caption>
-<thead>
-<tr class="header">
-<th align="left">Predictor</th>
-<th align="right">n</th>
-<th align="right">beta</th>
-<th align="right">p</th>
-<th align="right">R2</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">SacPers</td>
-<td align="right">121</td>
-<td align="right">0.344</td>
-<td align="right">0.000</td>
-<td align="right">0.118</td>
-</tr>
-<tr class="even">
-<td align="left">NetRev</td>
-<td align="right">121</td>
-<td align="right">0.321</td>
-<td align="right">0.000</td>
-<td align="right">0.103</td>
-</tr>
-<tr class="odd">
-<td align="left">trust_sp_sacred_index</td>
-<td align="right">121</td>
-<td align="right">0.274</td>
-<td align="right">0.002</td>
-<td align="right">0.075</td>
-</tr>
-<tr class="even">
-<td align="left">trust_sp_index</td>
-<td align="right">121</td>
-<td align="right">0.130</td>
-<td align="right">0.154</td>
-<td align="right">0.017</td>
-</tr>
-</tbody>
-</table>
-<div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" tabindex="-1"></a>worthy_h2h <span class="ot">&lt;-</span> <span class="fu">headtohead</span>(trustees, <span class="st">&quot;Wor_agg_avg&quot;</span>, <span class="st">&quot;SacPers&quot;</span>,</span>
-<span id="cb94-2"><a href="#cb94-2" tabindex="-1"></a>                         <span class="fu">c</span>(<span class="st">&quot;trust_sp_index&quot;</span>, <span class="st">&quot;trust_sp_sacred_index&quot;</span>))</span>
-<span id="cb94-3"><a href="#cb94-3" tabindex="-1"></a><span class="fu">kable</span>(worthy_h2h, <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb94-4"><a href="#cb94-4" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Predictor&quot;</span>, <span class="st">&quot;n&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;p&quot;</span>, <span class="st">&quot;beta (adj.)&quot;</span>, <span class="st">&quot;p (adj.)&quot;</span>),</span>
-<span id="cb94-5"><a href="#cb94-5" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;Trustworthiness head-to-head. `adj.` = the index&#39;s standardized coefficient with sacred values held (SacPers) in the model. Reproduces the trustworthiness panel of SI Table s3-trust-index.&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Trustworthiness head-to-head. <code>adj.</code> = the index’s
-standardized coefficient with sacred values held (SacPers) in the model.
-Reproduces the trustworthiness panel of SI Table
-s3-trust-index.</caption>
-<thead>
-<tr class="header">
-<th align="left">Predictor</th>
-<th align="right">n</th>
-<th align="right">beta</th>
-<th align="right">p</th>
-<th align="right">beta (adj.)</th>
-<th align="right">p (adj.)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">SacPers</td>
-<td align="right">121</td>
-<td align="right">0.344</td>
-<td align="right">0.000</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">trust_sp_index</td>
-<td align="right">121</td>
-<td align="right">0.130</td>
-<td align="right">0.154</td>
-<td align="right">-0.004</td>
-<td align="right">0.970</td>
-</tr>
-<tr class="odd">
-<td align="left">trust_sp_sacred_index</td>
-<td align="right">121</td>
-<td align="right">0.274</td>
-<td align="right">0.002</td>
-<td align="right">-0.175</td>
-<td align="right">0.369</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="change-in-trust-tru_diff" class="section level3" number="4.13.3">
-<h3><span class="header-section-number">4.13.3</span> Change in trust
-(<code>Tru_diff</code>)</h3>
-<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" tabindex="-1"></a>trust_uni <span class="ot">&lt;-</span> <span class="fu">bakeoff</span>(trustees, <span class="st">&quot;Tru_diff&quot;</span>,</span>
-<span id="cb95-2"><a href="#cb95-2" tabindex="-1"></a>                     <span class="fu">c</span>(<span class="st">&quot;NetRev&quot;</span>, <span class="st">&quot;trust_revealed_index&quot;</span>, <span class="st">&quot;trust_sacred_revealed_index&quot;</span>))</span>
-<span id="cb95-3"><a href="#cb95-3" tabindex="-1"></a><span class="fu">kable</span>(trust_uni, <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb95-4"><a href="#cb95-4" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;Change in trust: univariate standardized bake-off (sorted by |beta|). Revealed indices defined on n = 88.&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Change in trust: univariate standardized bake-off (sorted by
-|beta|). Revealed indices defined on n = 88.</caption>
-<thead>
-<tr class="header">
-<th align="left">Predictor</th>
-<th align="right">n</th>
-<th align="right">beta</th>
-<th align="right">p</th>
-<th align="right">R2</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">NetRev</td>
-<td align="right">121</td>
-<td align="right">0.232</td>
-<td align="right">0.011</td>
-<td align="right">0.054</td>
-</tr>
-<tr class="even">
-<td align="left">trust_sacred_revealed_index</td>
-<td align="right">88</td>
-<td align="right">0.215</td>
-<td align="right">0.044</td>
-<td align="right">0.046</td>
-</tr>
-<tr class="odd">
-<td align="left">trust_revealed_index</td>
-<td align="right">88</td>
-<td align="right">0.186</td>
-<td align="right">0.082</td>
-<td align="right">0.035</td>
-</tr>
-</tbody>
-</table>
-<div class="sourceCode" id="cb96"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" tabindex="-1"></a>trust_h2h <span class="ot">&lt;-</span> <span class="fu">headtohead</span>(trustees, <span class="st">&quot;Tru_diff&quot;</span>, <span class="st">&quot;NetRev&quot;</span>,</span>
-<span id="cb96-2"><a href="#cb96-2" tabindex="-1"></a>                        <span class="fu">c</span>(<span class="st">&quot;trust_revealed_index&quot;</span>, <span class="st">&quot;trust_sacred_revealed_index&quot;</span>))</span>
-<span id="cb96-3"><a href="#cb96-3" tabindex="-1"></a><span class="fu">kable</span>(trust_h2h, <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb96-4"><a href="#cb96-4" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Predictor&quot;</span>, <span class="st">&quot;n&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;p&quot;</span>, <span class="st">&quot;beta (adj.)&quot;</span>, <span class="st">&quot;p (adj.)&quot;</span>),</span>
-<span id="cb96-5"><a href="#cb96-5" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;Change-in-trust head-to-head. `adj.` = the index&#39;s standardized coefficient with net sacred values revealed (NetRev) in the model. Reproduces the change-in-trust panel of SI Table s3-trust-index.&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Change-in-trust head-to-head. <code>adj.</code> = the index’s
-standardized coefficient with net sacred values revealed (NetRev) in the
-model. Reproduces the change-in-trust panel of SI Table
-s3-trust-index.</caption>
-<thead>
-<tr class="header">
-<th align="left">Predictor</th>
-<th align="right">n</th>
-<th align="right">beta</th>
-<th align="right">p</th>
-<th align="right">beta (adj.)</th>
-<th align="right">p (adj.)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">NetRev</td>
-<td align="right">121</td>
-<td align="right">0.232</td>
-<td align="right">0.011</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">trust_revealed_index</td>
-<td align="right">88</td>
-<td align="right">0.186</td>
-<td align="right">0.082</td>
-<td align="right">0.152</td>
-<td align="right">0.156</td>
-</tr>
-<tr class="odd">
-<td align="left">trust_sacred_revealed_index</td>
-<td align="right">88</td>
-<td align="right">0.215</td>
-<td align="right">0.044</td>
-<td align="right">0.111</td>
-<td align="right">0.517</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Reading the result.</strong> The general sacred-values
-measure wins on both outcomes. For trustworthiness, sacred values held
-is the strongest single predictor (β ≈ .34) and neither content index
-adds anything once it is included: the held trust index is null to begin
-with, and the sacred trust index — respectable alone (β ≈ .27) —
-collapses to roughly zero with <code>SacPers</code> in the model. For
-change in trust, the net balance revealed is the only measure
-significant on the full sample (β ≈ .23, <em>p</em> ≈ .01); the revealed
-content indices are weaker, rest on the smaller <em>n</em> = 88, and
-lose their significance once the net balance is partialled out. In no
-case does specific trust-connoting content explain variance the general
-sacred-values signal does not. These are the numbers behind SI Table
-<code>s3-trust-index</code>.</p>
-</div>
-<div id="factor-loadings-versus-the-aggregate" class="section level3" number="4.13.4">
-<h3><span class="header-section-number">4.13.4</span> Factor loadings
-versus the aggregate</h3>
-<p>The SI also checks whether any empirically identified <em>factor</em>
-of the inventory (Section <code>s3-factors</code>) predicts
-trustworthiness better than the raw aggregate. It reports that a high
-loading on the first factor goes with greater trustworthiness, but
-explains <strong>less</strong> variance than the total sacred-values
-count (9.2% versus 11.8%), and that no revealed factor loading predicts
-change in trust. Here <code>full_f1</code> is the archived first-factor
-score (full inventory) and <code>SacPers</code> the aggregate.</p>
-<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" tabindex="-1"></a>r2_f1  <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">lm</span>(Wor_agg_avg <span class="sc">~</span> full_f1, <span class="at">data =</span> trustees))<span class="sc">$</span>r.squared</span>
-<span id="cb97-2"><a href="#cb97-2" tabindex="-1"></a>r2_agg <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">lm</span>(Wor_agg_avg <span class="sc">~</span> SacPers, <span class="at">data =</span> trustees))<span class="sc">$</span>r.squared</span>
-<span id="cb97-3"><a href="#cb97-3" tabindex="-1"></a>r2_rf1 <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">lm</span>(Tru_diff    <span class="sc">~</span> rev_f1,  <span class="at">data =</span> trustees))<span class="sc">$</span>r.squared</span>
-<span id="cb97-4"><a href="#cb97-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Trustworthiness R^2: first factor (full_f1) = %.1f%% vs aggregate (SacPers) = %.1f%%</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb97-5"><a href="#cb97-5" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> r2_f1, <span class="dv">100</span> <span class="sc">*</span> r2_agg))</span></code></pre></div>
-<pre><code>## Trustworthiness R^2: first factor (full_f1) = 9.2% vs aggregate (SacPers) = 11.8%</code></pre>
-<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Change in trust R^2: first revealed factor (rev_f1) = %.1f%% (SI: no revealed factor predicts it)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb99-2"><a href="#cb99-2" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> r2_rf1))</span></code></pre></div>
-<pre><code>## Change in trust R^2: first revealed factor (rev_f1) = 4.7% (SI: no revealed factor predicts it)</code></pre>
-<p>Both figures reproduce exactly: the aggregate gives 11.8% and the
-archived first-factor score (<code>full_f1</code>) gives 9.24% -&gt;
-9.2%. The factor explains less than the aggregate.</p>
-</div>
-</div>
-<div id="religiosity-trust-and-trustworthiness-s3-religiosity" class="section level2" number="4.14">
-<h2><span class="header-section-number">4.14</span> Religiosity, trust
+<div id="religiosity-trust-and-trustworthiness-s3-religiosity" class="section level2" number="4.13">
+<h2><span class="header-section-number">4.13</span> Religiosity, trust
 and trustworthiness (<code>s3-religiosity</code>)</h2>
 <p>The SI reports that religiosity — under three measures (any religious
 affiliation, belief in God, and treating religion itself as sacred) — is
@@ -3386,20 +3061,20 @@ more sacred values overall (Mann–Whitney <em>z</em> = 6.895, <em>p</em>
 (<code>s3-religiosity</code>); the <em>z</em>-test is on the number of
 sacred values by the religion-is-sacred split, over all 242 trust-game
 participants.</p>
-<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1" tabindex="-1"></a>relig_desc <span class="ot">&lt;-</span> <span class="cf">function</span>(gvar) {</span>
-<span id="cb101-2"><a href="#cb101-2" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="fu">droplevels</span>(<span class="fu">as_factor</span>(tc[[gvar]]))</span>
-<span id="cb101-3"><a href="#cb101-3" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
-<span id="cb101-4"><a href="#cb101-4" tabindex="-1"></a>    <span class="at">Measure   =</span> gvar,</span>
-<span id="cb101-5"><a href="#cb101-5" tabindex="-1"></a>    <span class="at">Group     =</span> <span class="fu">levels</span>(g),</span>
-<span id="cb101-6"><a href="#cb101-6" tabindex="-1"></a>    <span class="st">`</span><span class="at">Sacred values</span><span class="st">`</span>      <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>SacPers,     g, mean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
-<span id="cb101-7"><a href="#cb101-7" tabindex="-1"></a>    <span class="st">`</span><span class="at">Trustworthy (g1)</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>Wor_pre_avg, g, mean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">2</span>),</span>
-<span id="cb101-8"><a href="#cb101-8" tabindex="-1"></a>    <span class="st">`</span><span class="at">Trust received</span><span class="st">`</span>     <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>Tru_post,    g, mean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">2</span>),</span>
-<span id="cb101-9"><a href="#cb101-9" tabindex="-1"></a>    <span class="at">N         =</span> <span class="fu">as.integer</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>SacPers, g, <span class="cf">function</span>(z) <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(z)))),</span>
-<span id="cb101-10"><a href="#cb101-10" tabindex="-1"></a>    <span class="at">check.names =</span> <span class="cn">FALSE</span>, <span class="at">row.names =</span> <span class="cn">NULL</span>)</span>
-<span id="cb101-11"><a href="#cb101-11" tabindex="-1"></a>}</span>
-<span id="cb101-12"><a href="#cb101-12" tabindex="-1"></a>relig_tab <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(<span class="fu">c</span>(<span class="st">&quot;religious_bin&quot;</span>, <span class="st">&quot;believe_god&quot;</span>, <span class="st">&quot;religious_sacred&quot;</span>), relig_desc))</span>
-<span id="cb101-13"><a href="#cb101-13" tabindex="-1"></a><span class="fu">kable</span>(relig_tab, <span class="at">digits =</span> <span class="dv">2</span>,</span>
-<span id="cb101-14"><a href="#cb101-14" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;SI table `s3-religiosity` reproduced --- sacred values, trustworthiness (game 1 proportion returned), and trust received, by religious affiliation / belief in God / religion-is-sacred.&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" tabindex="-1"></a>relig_desc <span class="ot">&lt;-</span> <span class="cf">function</span>(gvar) {</span>
+<span id="cb88-2"><a href="#cb88-2" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="fu">droplevels</span>(<span class="fu">as_factor</span>(tc[[gvar]]))</span>
+<span id="cb88-3"><a href="#cb88-3" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb88-4"><a href="#cb88-4" tabindex="-1"></a>    <span class="at">Measure   =</span> gvar,</span>
+<span id="cb88-5"><a href="#cb88-5" tabindex="-1"></a>    <span class="at">Group     =</span> <span class="fu">levels</span>(g),</span>
+<span id="cb88-6"><a href="#cb88-6" tabindex="-1"></a>    <span class="st">`</span><span class="at">Sacred values</span><span class="st">`</span>      <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>SacPers,     g, mean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb88-7"><a href="#cb88-7" tabindex="-1"></a>    <span class="st">`</span><span class="at">Trustworthy (g1)</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>Wor_pre_avg, g, mean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">2</span>),</span>
+<span id="cb88-8"><a href="#cb88-8" tabindex="-1"></a>    <span class="st">`</span><span class="at">Trust received</span><span class="st">`</span>     <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>Tru_post,    g, mean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">2</span>),</span>
+<span id="cb88-9"><a href="#cb88-9" tabindex="-1"></a>    <span class="at">N         =</span> <span class="fu">as.integer</span>(<span class="fu">tapply</span>(tc<span class="sc">$</span>SacPers, g, <span class="cf">function</span>(z) <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(z)))),</span>
+<span id="cb88-10"><a href="#cb88-10" tabindex="-1"></a>    <span class="at">check.names =</span> <span class="cn">FALSE</span>, <span class="at">row.names =</span> <span class="cn">NULL</span>)</span>
+<span id="cb88-11"><a href="#cb88-11" tabindex="-1"></a>}</span>
+<span id="cb88-12"><a href="#cb88-12" tabindex="-1"></a>relig_tab <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(<span class="fu">c</span>(<span class="st">&quot;religious_bin&quot;</span>, <span class="st">&quot;believe_god&quot;</span>, <span class="st">&quot;religious_sacred&quot;</span>), relig_desc))</span>
+<span id="cb88-13"><a href="#cb88-13" tabindex="-1"></a><span class="fu">kable</span>(relig_tab, <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb88-14"><a href="#cb88-14" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;SI table `s3-religiosity` reproduced --- sacred values, trustworthiness (game 1 proportion returned), and trust received, by religious affiliation / belief in God / religion-is-sacred.&quot;</span>)</span></code></pre></div>
 <table>
 <caption>SI table <code>s3-religiosity</code> reproduced — sacred
 values, trustworthiness (game 1 proportion returned), and trust
@@ -3474,14 +3149,14 @@ religion-is-sacred.</caption>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1" tabindex="-1"></a><span class="co"># The one tested effect: sacred values by the religion-is-sacred split.</span></span>
-<span id="cb102-2"><a href="#cb102-2" tabindex="-1"></a>rs <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">as_factor</span>(tc<span class="sc">$</span>religious_sacred))</span>
-<span id="cb102-3"><a href="#cb102-3" tabindex="-1"></a>relig_z <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(coin<span class="sc">::</span><span class="fu">statistic</span>(</span>
-<span id="cb102-4"><a href="#cb102-4" tabindex="-1"></a>  coin<span class="sc">::</span><span class="fu">wilcox_test</span>(tc<span class="sc">$</span>SacPers <span class="sc">~</span> rs, <span class="at">distribution =</span> <span class="st">&quot;asymptotic&quot;</span>), <span class="st">&quot;standardized&quot;</span>))</span>
-<span id="cb102-5"><a href="#cb102-5" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Sacred values ~ religion-is-sacred: Mann-Whitney |z| = %.3f, means %.1f (sacred) vs %.1f (not)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb102-6"><a href="#cb102-6" tabindex="-1"></a>            <span class="fu">abs</span>(relig_z),</span>
-<span id="cb102-7"><a href="#cb102-7" tabindex="-1"></a>            <span class="fu">mean</span>(tc<span class="sc">$</span>SacPers[tc<span class="sc">$</span>religious_sacred <span class="sc">==</span> <span class="dv">1</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb102-8"><a href="#cb102-8" tabindex="-1"></a>            <span class="fu">mean</span>(tc<span class="sc">$</span>SacPers[tc<span class="sc">$</span>religious_sacred <span class="sc">==</span> <span class="dv">0</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" tabindex="-1"></a><span class="co"># The one tested effect: sacred values by the religion-is-sacred split.</span></span>
+<span id="cb89-2"><a href="#cb89-2" tabindex="-1"></a>rs <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">as_factor</span>(tc<span class="sc">$</span>religious_sacred))</span>
+<span id="cb89-3"><a href="#cb89-3" tabindex="-1"></a>relig_z <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(coin<span class="sc">::</span><span class="fu">statistic</span>(</span>
+<span id="cb89-4"><a href="#cb89-4" tabindex="-1"></a>  coin<span class="sc">::</span><span class="fu">wilcox_test</span>(tc<span class="sc">$</span>SacPers <span class="sc">~</span> rs, <span class="at">distribution =</span> <span class="st">&quot;asymptotic&quot;</span>), <span class="st">&quot;standardized&quot;</span>))</span>
+<span id="cb89-5"><a href="#cb89-5" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Sacred values ~ religion-is-sacred: Mann-Whitney |z| = %.3f, means %.1f (sacred) vs %.1f (not)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb89-6"><a href="#cb89-6" tabindex="-1"></a>            <span class="fu">abs</span>(relig_z),</span>
+<span id="cb89-7"><a href="#cb89-7" tabindex="-1"></a>            <span class="fu">mean</span>(tc<span class="sc">$</span>SacPers[tc<span class="sc">$</span>religious_sacred <span class="sc">==</span> <span class="dv">1</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb89-8"><a href="#cb89-8" tabindex="-1"></a>            <span class="fu">mean</span>(tc<span class="sc">$</span>SacPers[tc<span class="sc">$</span>religious_sacred <span class="sc">==</span> <span class="dv">0</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)))</span></code></pre></div>
 <pre><code>## Sacred values ~ religion-is-sacred: Mann-Whitney |z| = 6.895, means 36.1 (sacred) vs 13.7 (not)</code></pre>
 <blockquote>
 <p><strong>Descriptive flag.</strong> The sacred-values row and the
@@ -3493,44 +3168,26 @@ These are untested descriptive means; the discrepancy is logged for
 review, not silently reconciled.</p>
 </blockquote>
 </div>
-<div id="si-audit-computed-vs-si" class="section level2" number="4.15">
-<h2><span class="header-section-number">4.15</span> SI audit: computed
+<div id="si-audit-computed-vs-si" class="section level2" number="4.14">
+<h2><span class="header-section-number">4.14</span> SI audit: computed
 vs SI</h2>
 <p>Every value reported in the Study 3 SI, collected against its printed
 figure.</p>
-<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1" tabindex="-1"></a><span class="co"># Pull a standardized coefficient (alone or adjusted) out of a head-to-head table by predictor.</span></span>
-<span id="cb104-2"><a href="#cb104-2" tabindex="-1"></a>grab <span class="ot">&lt;-</span> <span class="cf">function</span>(tab, pred, <span class="at">col =</span> <span class="st">&quot;beta&quot;</span>) tab[[col]][tab<span class="sc">$</span>Predictor <span class="sc">==</span> pred]</span>
-<span id="cb104-3"><a href="#cb104-3" tabindex="-1"></a></span>
-<span id="cb104-4"><a href="#cb104-4" tabindex="-1"></a>si_audit <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb104-5"><a href="#cb104-5" tabindex="-1"></a>  <span class="co"># Beliefs</span></span>
-<span id="cb104-6"><a href="#cb104-6" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Belief &#39;partner trusts more&#39; r (s3-scatter-belief)&quot;</span>,       belief_trust<span class="sc">$</span>r,  <span class="fl">0.428</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
-<span id="cb104-7"><a href="#cb104-7" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Belief &#39;partner worthier&#39; r (s3-scatter-trustworthiness)&quot;</span>, belief_worthy<span class="sc">$</span>r, <span class="fl">0.176</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
-<span id="cb104-8"><a href="#cb104-8" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Belief &#39;partner worthier&#39; p&quot;</span>,                              belief_worthy<span class="sc">$</span>p, <span class="fl">0.054</span>, <span class="fl">0.01</span>, <span class="dv">3</span>),</span>
-<span id="cb104-9"><a href="#cb104-9" tabindex="-1"></a>  <span class="co"># Revision</span></span>
-<span id="cb104-10"><a href="#cb104-10" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Revise-answers r (s3-survey-revision)&quot;</span>,                    revision<span class="sc">$</span>r,      <span class="fl">0.335</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
-<span id="cb104-11"><a href="#cb104-11" tabindex="-1"></a>  <span class="co"># Revelation preference</span></span>
-<span id="cb104-12"><a href="#cb104-12" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Revelation chi-square (s3-mixed-logit)&quot;</span>,                   reveal_chi<span class="sc">$</span>statistic, <span class="fl">28.9</span>, <span class="fl">0.5</span>, <span class="dv">1</span>),</span>
-<span id="cb104-13"><a href="#cb104-13" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Mixed-logit sacred coef, Model 1&quot;</span>,                         rev1_b,         <span class="sc">-</span><span class="fl">0.269</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
-<span id="cb104-14"><a href="#cb104-14" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Mixed-logit sacred coef, Model 2&quot;</span>,                         rev2_b,         <span class="sc">-</span><span class="fl">0.245</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
-<span id="cb104-15"><a href="#cb104-15" tabindex="-1"></a>  <span class="co"># Trust-connoting content (s3-trust-index)</span></span>
-<span id="cb104-16"><a href="#cb104-16" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trustworthiness: SacPers beta&quot;</span>,           <span class="fu">grab</span>(worthy_h2h, <span class="st">&quot;SacPers&quot;</span>),               <span class="fl">0.34</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb104-17"><a href="#cb104-17" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trustworthiness: trust index beta&quot;</span>,       <span class="fu">grab</span>(worthy_h2h, <span class="st">&quot;trust_sp_index&quot;</span>),        <span class="fl">0.13</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb104-18"><a href="#cb104-18" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trustworthiness: trust-sacred index beta&quot;</span>,<span class="fu">grab</span>(worthy_h2h, <span class="st">&quot;trust_sp_sacred_index&quot;</span>), <span class="fl">0.27</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb104-19"><a href="#cb104-19" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trustworthiness: trust-sacred index beta (adj.)&quot;</span>,</span>
-<span id="cb104-20"><a href="#cb104-20" tabindex="-1"></a>            <span class="fu">grab</span>(worthy_h2h, <span class="st">&quot;trust_sp_sacred_index&quot;</span>, <span class="st">&quot;beta_adj&quot;</span>),                                <span class="sc">-</span><span class="fl">0.18</span>, <span class="fl">0.04</span>, <span class="dv">2</span>),</span>
-<span id="cb104-21"><a href="#cb104-21" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Change in trust: NetRev beta&quot;</span>,            <span class="fu">grab</span>(trust_h2h, <span class="st">&quot;NetRev&quot;</span>),                  <span class="fl">0.23</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb104-22"><a href="#cb104-22" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Change in trust: revealed index beta&quot;</span>,    <span class="fu">grab</span>(trust_h2h, <span class="st">&quot;trust_revealed_index&quot;</span>),    <span class="fl">0.19</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb104-23"><a href="#cb104-23" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Change in trust: sacred-revealed index beta&quot;</span>,</span>
-<span id="cb104-24"><a href="#cb104-24" tabindex="-1"></a>            <span class="fu">grab</span>(trust_h2h, <span class="st">&quot;trust_sacred_revealed_index&quot;</span>),                                        <span class="fl">0.22</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb104-25"><a href="#cb104-25" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Change in trust: sacred-revealed index beta (adj.)&quot;</span>,</span>
-<span id="cb104-26"><a href="#cb104-26" tabindex="-1"></a>            <span class="fu">grab</span>(trust_h2h, <span class="st">&quot;trust_sacred_revealed_index&quot;</span>, <span class="st">&quot;beta_adj&quot;</span>),                            <span class="fl">0.11</span>, <span class="fl">0.04</span>, <span class="dv">2</span>),</span>
-<span id="cb104-27"><a href="#cb104-27" tabindex="-1"></a>  <span class="co"># Factor loadings vs aggregate</span></span>
-<span id="cb104-28"><a href="#cb104-28" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trustworthiness R^2: first factor&quot;</span>,       r2_f1,  <span class="fl">0.092</span>, <span class="fl">0.005</span>, <span class="dv">3</span>),</span>
-<span id="cb104-29"><a href="#cb104-29" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trustworthiness R^2: aggregate&quot;</span>,          r2_agg, <span class="fl">0.118</span>, <span class="fl">0.01</span>, <span class="dv">3</span>),</span>
-<span id="cb104-30"><a href="#cb104-30" tabindex="-1"></a>  <span class="co"># Religiosity</span></span>
-<span id="cb104-31"><a href="#cb104-31" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Religiosity Mann-Whitney |z|&quot;</span>,            <span class="fu">abs</span>(relig_z), <span class="fl">6.895</span>, <span class="fl">0.05</span>, <span class="dv">3</span>)</span>
-<span id="cb104-32"><a href="#cb104-32" tabindex="-1"></a>)</span>
-<span id="cb104-33"><a href="#cb104-33" tabindex="-1"></a><span class="fu">kable</span>(si_audit, <span class="at">align =</span> <span class="st">&quot;lrrl&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" tabindex="-1"></a>si_audit <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb91-2"><a href="#cb91-2" tabindex="-1"></a>  <span class="co"># Beliefs</span></span>
+<span id="cb91-3"><a href="#cb91-3" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Belief &#39;partner trusts more&#39; r (s3-scatter-belief)&quot;</span>,       belief_trust<span class="sc">$</span>r,  <span class="fl">0.428</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
+<span id="cb91-4"><a href="#cb91-4" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Belief &#39;partner worthier&#39; r (s3-scatter-trustworthiness)&quot;</span>, belief_worthy<span class="sc">$</span>r, <span class="fl">0.176</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
+<span id="cb91-5"><a href="#cb91-5" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Belief &#39;partner worthier&#39; p&quot;</span>,                              belief_worthy<span class="sc">$</span>p, <span class="fl">0.054</span>, <span class="fl">0.01</span>, <span class="dv">3</span>),</span>
+<span id="cb91-6"><a href="#cb91-6" tabindex="-1"></a>  <span class="co"># Revision</span></span>
+<span id="cb91-7"><a href="#cb91-7" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Revise-answers r (s3-survey-revision)&quot;</span>,                    revision<span class="sc">$</span>r,      <span class="fl">0.335</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
+<span id="cb91-8"><a href="#cb91-8" tabindex="-1"></a>  <span class="co"># Revelation preference</span></span>
+<span id="cb91-9"><a href="#cb91-9" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Revelation chi-square (s3-mixed-logit)&quot;</span>,                   reveal_chi<span class="sc">$</span>statistic, <span class="fl">28.9</span>, <span class="fl">0.5</span>, <span class="dv">1</span>),</span>
+<span id="cb91-10"><a href="#cb91-10" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Mixed-logit sacred coef, Model 1&quot;</span>,                         rev1_b,         <span class="sc">-</span><span class="fl">0.269</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
+<span id="cb91-11"><a href="#cb91-11" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Mixed-logit sacred coef, Model 2&quot;</span>,                         rev2_b,         <span class="sc">-</span><span class="fl">0.245</span>, <span class="fl">0.02</span>, <span class="dv">3</span>),</span>
+<span id="cb91-12"><a href="#cb91-12" tabindex="-1"></a>  <span class="co"># Religiosity</span></span>
+<span id="cb91-13"><a href="#cb91-13" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Religiosity Mann-Whitney |z|&quot;</span>,            <span class="fu">abs</span>(relig_z), <span class="fl">6.895</span>, <span class="fl">0.05</span>, <span class="dv">3</span>)</span>
+<span id="cb91-14"><a href="#cb91-14" tabindex="-1"></a>)</span>
+<span id="cb91-15"><a href="#cb91-15" tabindex="-1"></a><span class="fu">kable</span>(si_audit, <span class="at">align =</span> <span class="st">&quot;lrrl&quot;</span>)</span></code></pre></div>
 <table>
 <colgroup>
 <col width="70%" />
@@ -3591,66 +3248,6 @@ figure.</p>
 <td align="left">match</td>
 </tr>
 <tr class="even">
-<td align="left">Trustworthiness: SacPers beta</td>
-<td align="right">0.34</td>
-<td align="right">0.34</td>
-<td align="left">match</td>
-</tr>
-<tr class="odd">
-<td align="left">Trustworthiness: trust index beta</td>
-<td align="right">0.13</td>
-<td align="right">0.13</td>
-<td align="left">match</td>
-</tr>
-<tr class="even">
-<td align="left">Trustworthiness: trust-sacred index beta</td>
-<td align="right">0.27</td>
-<td align="right">0.27</td>
-<td align="left">match</td>
-</tr>
-<tr class="odd">
-<td align="left">Trustworthiness: trust-sacred index beta (adj.)</td>
-<td align="right">-0.18</td>
-<td align="right">-0.18</td>
-<td align="left">match</td>
-</tr>
-<tr class="even">
-<td align="left">Change in trust: NetRev beta</td>
-<td align="right">0.23</td>
-<td align="right">0.23</td>
-<td align="left">match</td>
-</tr>
-<tr class="odd">
-<td align="left">Change in trust: revealed index beta</td>
-<td align="right">0.19</td>
-<td align="right">0.19</td>
-<td align="left">match</td>
-</tr>
-<tr class="even">
-<td align="left">Change in trust: sacred-revealed index beta</td>
-<td align="right">0.22</td>
-<td align="right">0.22</td>
-<td align="left">match</td>
-</tr>
-<tr class="odd">
-<td align="left">Change in trust: sacred-revealed index beta (adj.)</td>
-<td align="right">0.11</td>
-<td align="right">0.11</td>
-<td align="left">match</td>
-</tr>
-<tr class="even">
-<td align="left">Trustworthiness R^2: first factor</td>
-<td align="right">0.092</td>
-<td align="right">0.092</td>
-<td align="left">match</td>
-</tr>
-<tr class="odd">
-<td align="left">Trustworthiness R^2: aggregate</td>
-<td align="right">0.118</td>
-<td align="right">0.118</td>
-<td align="left">match</td>
-</tr>
-<tr class="even">
 <td align="left">Religiosity Mann-Whitney |z|</td>
 <td align="right">6.895</td>
 <td align="right">6.895</td>
@@ -3663,7 +3260,7 @@ figure.</p>
 </div>
 <div id="audit-summary" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> Audit summary</h1>
-<pre><code>## Audited claims: 47 | match: 43 | close (bootstrap/rounding/rebuild noise): 0 | DIFFERS: 0</code></pre>
+<pre><code>## Audited claims: 37 | match: 33 | close (bootstrap/rounding/rebuild noise): 0 | DIFFERS: 0</code></pre>
 <hr />
 </div>
 <div id="preregistered-specifications-osf-stata-port" class="section level1" number="6">
@@ -3686,24 +3283,24 @@ the H3 mixed logit — <em>are</em> reported in the SI and appear as
 audited results in the SI section above, not here. Included for
 transparency / reproducibility of the OSF code.</p>
 </blockquote>
-<div class="sourceCode" id="cb106"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb106-1"><a href="#cb106-1" tabindex="-1"></a>tc_tru <span class="ot">&lt;-</span> tc <span class="sc">%&gt;%</span> <span class="fu">filter</span>(role_a_b <span class="sc">==</span> <span class="dv">2</span>)   <span class="co"># `tc` was loaded in the SI section above</span></span></code></pre></div>
+<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" tabindex="-1"></a>tc_tru <span class="ot">&lt;-</span> tc <span class="sc">%&gt;%</span> <span class="fu">filter</span>(role_a_b <span class="sc">==</span> <span class="dv">2</span>)   <span class="co"># `tc` was loaded in the SI section above</span></span></code></pre></div>
 <div id="h1-do-sacred-valuers-return-more-ols" class="section level2" number="6.1">
 <h2><span class="header-section-number">6.1</span> H1 — do sacred
 valuers return more? (OLS)</h2>
 <p><code>regress Wor_agg_avg SacPers if role_a_b == 2</code> and
 variants.</p>
-<div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" tabindex="-1"></a>h1 <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb107-2"><a href="#cb107-2" tabindex="-1"></a>  <span class="st">&quot;returns ~ SV (aggregate)&quot;</span>   <span class="ot">=</span> <span class="fu">lm</span>(Wor_agg_avg <span class="sc">~</span> SacPers, <span class="at">data =</span> tc_tru),</span>
-<span id="cb107-3"><a href="#cb107-3" tabindex="-1"></a>  <span class="st">&quot;returns ~ SV (Game 1 only)&quot;</span> <span class="ot">=</span> <span class="fu">lm</span>(Wor_pre_avg <span class="sc">~</span> SacPers, <span class="at">data =</span> tc_tru),</span>
-<span id="cb107-4"><a href="#cb107-4" tabindex="-1"></a>  <span class="st">&quot;returns ~ SV + Greed&quot;</span>       <span class="ot">=</span> <span class="fu">lm</span>(Wor_agg_avg <span class="sc">~</span> SacPers <span class="sc">+</span> Greed, <span class="at">data =</span> tc_tru)</span>
-<span id="cb107-5"><a href="#cb107-5" tabindex="-1"></a>)</span>
-<span id="cb107-6"><a href="#cb107-6" tabindex="-1"></a>h1_tab <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(h1), <span class="cf">function</span>(nm) {</span>
-<span id="cb107-7"><a href="#cb107-7" tabindex="-1"></a>  co <span class="ot">&lt;-</span> <span class="fu">summary</span>(h1[[nm]])<span class="sc">$</span>coefficients</span>
-<span id="cb107-8"><a href="#cb107-8" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">Model =</span> nm, <span class="at">b_SacPers =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;Estimate&quot;</span>],</span>
-<span id="cb107-9"><a href="#cb107-9" tabindex="-1"></a>             <span class="at">SE =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;Std. Error&quot;</span>], <span class="at">t =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;t value&quot;</span>],</span>
-<span id="cb107-10"><a href="#cb107-10" tabindex="-1"></a>             <span class="at">p =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;Pr(&gt;|t|)&quot;</span>], <span class="at">R2 =</span> <span class="fu">summary</span>(h1[[nm]])<span class="sc">$</span>r.squared)</span>
-<span id="cb107-11"><a href="#cb107-11" tabindex="-1"></a>}))</span>
-<span id="cb107-12"><a href="#cb107-12" tabindex="-1"></a><span class="fu">kable</span>(h1_tab, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">&quot;H1: trustee returns regressed on sacred-value endorsement.&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" tabindex="-1"></a>h1 <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb94-2"><a href="#cb94-2" tabindex="-1"></a>  <span class="st">&quot;returns ~ SV (aggregate)&quot;</span>   <span class="ot">=</span> <span class="fu">lm</span>(Wor_agg_avg <span class="sc">~</span> SacPers, <span class="at">data =</span> tc_tru),</span>
+<span id="cb94-3"><a href="#cb94-3" tabindex="-1"></a>  <span class="st">&quot;returns ~ SV (Game 1 only)&quot;</span> <span class="ot">=</span> <span class="fu">lm</span>(Wor_pre_avg <span class="sc">~</span> SacPers, <span class="at">data =</span> tc_tru),</span>
+<span id="cb94-4"><a href="#cb94-4" tabindex="-1"></a>  <span class="st">&quot;returns ~ SV + Greed&quot;</span>       <span class="ot">=</span> <span class="fu">lm</span>(Wor_agg_avg <span class="sc">~</span> SacPers <span class="sc">+</span> Greed, <span class="at">data =</span> tc_tru)</span>
+<span id="cb94-5"><a href="#cb94-5" tabindex="-1"></a>)</span>
+<span id="cb94-6"><a href="#cb94-6" tabindex="-1"></a>h1_tab <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(h1), <span class="cf">function</span>(nm) {</span>
+<span id="cb94-7"><a href="#cb94-7" tabindex="-1"></a>  co <span class="ot">&lt;-</span> <span class="fu">summary</span>(h1[[nm]])<span class="sc">$</span>coefficients</span>
+<span id="cb94-8"><a href="#cb94-8" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">Model =</span> nm, <span class="at">b_SacPers =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;Estimate&quot;</span>],</span>
+<span id="cb94-9"><a href="#cb94-9" tabindex="-1"></a>             <span class="at">SE =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;Std. Error&quot;</span>], <span class="at">t =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;t value&quot;</span>],</span>
+<span id="cb94-10"><a href="#cb94-10" tabindex="-1"></a>             <span class="at">p =</span> co[<span class="st">&quot;SacPers&quot;</span>,<span class="st">&quot;Pr(&gt;|t|)&quot;</span>], <span class="at">R2 =</span> <span class="fu">summary</span>(h1[[nm]])<span class="sc">$</span>r.squared)</span>
+<span id="cb94-11"><a href="#cb94-11" tabindex="-1"></a>}))</span>
+<span id="cb94-12"><a href="#cb94-12" tabindex="-1"></a><span class="fu">kable</span>(h1_tab, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">&quot;H1: trustee returns regressed on sacred-value endorsement.&quot;</span>)</span></code></pre></div>
 <table>
 <caption>H1: trustee returns regressed on sacred-value
 endorsement.</caption>
@@ -3761,9 +3358,9 @@ The revealed-similarity factors (<code>wsim1/2/3</code>) were
 constructed once in the prep section above (min-max normalised factor
 scores, NumRev-weighted, dyad-matched) and are reused here, so the OLS
 port and the controlled GAMs share a single construction.</p>
-<div class="sourceCode" id="cb108"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1" tabindex="-1"></a>h2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Tru_diff <span class="sc">~</span> SacRev <span class="sc">+</span> Greed <span class="sc">+</span> wsim1 <span class="sc">+</span> wsim2 <span class="sc">+</span> wsim3, <span class="at">data =</span> trustees)</span>
-<span id="cb108-2"><a href="#cb108-2" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">as.data.frame</span>(<span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients), <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb108-3"><a href="#cb108-3" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;H2 (preregistered): change in trust on net sacred revealed, controlling for greed and revealed similarity.&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" tabindex="-1"></a>h2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Tru_diff <span class="sc">~</span> SacRev <span class="sc">+</span> Greed <span class="sc">+</span> wsim1 <span class="sc">+</span> wsim2 <span class="sc">+</span> wsim3, <span class="at">data =</span> trustees)</span>
+<span id="cb95-2"><a href="#cb95-2" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">as.data.frame</span>(<span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients), <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb95-3"><a href="#cb95-3" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;H2 (preregistered): change in trust on net sacred revealed, controlling for greed and revealed similarity.&quot;</span>)</span></code></pre></div>
 <table>
 <caption>H2 (preregistered): change in trust on net sacred revealed,
 controlling for greed and revealed similarity.</caption>
@@ -3821,16 +3418,16 @@ controlling for greed and revealed similarity.</caption>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb109"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb109-1"><a href="#cb109-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Preregistered test of SacRev: b = %.3f, t = %.2f, p = %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb109-2"><a href="#cb109-2" tabindex="-1"></a>            <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;Estimate&quot;</span>],</span>
-<span id="cb109-3"><a href="#cb109-3" tabindex="-1"></a>            <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;t value&quot;</span>],</span>
-<span id="cb109-4"><a href="#cb109-4" tabindex="-1"></a>            <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>]))</span></code></pre></div>
+<div class="sourceCode" id="cb96"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Preregistered test of SacRev: b = %.3f, t = %.2f, p = %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb96-2"><a href="#cb96-2" tabindex="-1"></a>            <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;Estimate&quot;</span>],</span>
+<span id="cb96-3"><a href="#cb96-3" tabindex="-1"></a>            <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;t value&quot;</span>],</span>
+<span id="cb96-4"><a href="#cb96-4" tabindex="-1"></a>            <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>]))</span></code></pre></div>
 <pre><code>## Preregistered test of SacRev: b = 0.009, t = 1.25, p = 0.2154</code></pre>
-<div class="sourceCode" id="cb111"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1" tabindex="-1"></a><span class="co"># This p is cited in the SI design history (p = .2154) and, rounded to .22, in the</span></span>
-<span id="cb111-2"><a href="#cb111-2" tabindex="-1"></a><span class="co"># main text, so it is audited here.</span></span>
-<span id="cb111-3"><a href="#cb111-3" tabindex="-1"></a>h2_p_audit <span class="ot">&lt;-</span> <span class="fu">audit_row</span>(<span class="st">&quot;H2 prereg SacRev p (SI .2154; main text .22)&quot;</span>,</span>
-<span id="cb111-4"><a href="#cb111-4" tabindex="-1"></a>                        <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>], <span class="fl">0.2154</span>, <span class="fl">0.0005</span>, <span class="dv">4</span>)</span>
-<span id="cb111-5"><a href="#cb111-5" tabindex="-1"></a><span class="fu">kable</span>(h2_p_audit, <span class="at">align =</span> <span class="st">&quot;lrrl&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb98"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" tabindex="-1"></a><span class="co"># This p is cited in the SI design history (p = .2154) and, rounded to .22, in the</span></span>
+<span id="cb98-2"><a href="#cb98-2" tabindex="-1"></a><span class="co"># main text, so it is audited here.</span></span>
+<span id="cb98-3"><a href="#cb98-3" tabindex="-1"></a>h2_p_audit <span class="ot">&lt;-</span> <span class="fu">audit_row</span>(<span class="st">&quot;H2 prereg SacRev p (SI .2154; main text .22)&quot;</span>,</span>
+<span id="cb98-4"><a href="#cb98-4" tabindex="-1"></a>                        <span class="fu">summary</span>(h2)<span class="sc">$</span>coefficients[<span class="st">&quot;SacRev&quot;</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>], <span class="fl">0.2154</span>, <span class="fl">0.0005</span>, <span class="dv">4</span>)</span>
+<span id="cb98-5"><a href="#cb98-5" tabindex="-1"></a><span class="fu">kable</span>(h2_p_audit, <span class="at">align =</span> <span class="st">&quot;lrrl&quot;</span>)</span></code></pre></div>
 <table>
 <colgroup>
 <col width="65%" />
@@ -3855,7 +3452,7 @@ controlling for greed and revealed similarity.</caption>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="#cb112-1" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="st">&quot;H2 preregistered SacRev p does not reproduce&quot;</span> <span class="ot">=</span> <span class="fu">all</span>(h2_p_audit<span class="sc">$</span>Check <span class="sc">==</span> <span class="st">&quot;match&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="st">&quot;H2 preregistered SacRev p does not reproduce&quot;</span> <span class="ot">=</span> <span class="fu">all</span>(h2_p_audit<span class="sc">$</span>Check <span class="sc">==</span> <span class="st">&quot;match&quot;</span>))</span></code></pre></div>
 <blockquote>
 <p><strong>The mixed-logit revelation test (former H3) is now an audited
 SI result</strong> — see <em>Did trustees reveal sacred values

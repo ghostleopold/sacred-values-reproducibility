@@ -49,8 +49,7 @@ backs the main text's asymmetry claim.
 alternative regression specifications (`s3-alt-specs`); the post-game **belief** correlations
 (`s3-scatter-belief`, `s3-scatter-trustworthiness`); the willingness-to-revise correlation
 (`s3-survey-revision`); the **revelation-preference** analysis --- the preregistered
-chi-square and the conservative mixed-effects logistic regression (`s3-mixed-logit`); the
-**trust-connoting content** bake-off (`s3-trust-index`) and its factor-loading companion; and
+chi-square and the conservative mixed-effects logistic regression (`s3-mixed-logit`); and
 the **religiosity** rank-sum test and table (`s3-religiosity`).
 
 The trustworthiness predictor is `SacPers` (sacred values *held*) by project decision --- the
@@ -718,9 +717,8 @@ the qualitative null claim), so they are marked descriptive and checked against 
 > **Scope.** The subsections below reproduce every analysis the paper reports **only in the
 > Supporting Information** for Study 3: the post-game belief correlations, the
 > willingness-to-revise correlation, the revelation-preference analysis (preregistered
-> chi-square and the mixed-effects logit), the trust-connoting content bake-off and its
-> factor-loading companion, and the religiosity rank-sum table. Each computed value is
-> collected into the SI audit table at the end of the section.
+> chi-square and the mixed-effects logit), and the religiosity rank-sum table. Each computed
+> value is collected into the SI audit table at the end of the section.
 
 ```{r si-load}
 # Extra archives used only by the SI analyses below.
@@ -856,153 +854,6 @@ cat(sprintf("Model 1 sacred coef b = %.3f (p = %.3f); Model 2 sacred coef b = %.
 > coefficient. The substantive reading --- a small, non-significant, wrong-signed effect ---
 > is identical. The coefficient (not the *p*) is what the audit targets.
 
-## Did specific trust-implying statements explain the result? (SI bake-off)
-
-A natural alternative to the sacred-values account is that the Study 3 effect was driven not
-by sacred values in general but by the *content* of a handful of inventory statements that, on
-their face, imply the speaker is trustworthy. The OSF `hypothesis 2 code.do` (its "trust
-implying value statements" block) builds four indices from the seven trust-connoting
-statements and regresses the outcomes on each one *singly*; the SI then compares them, loosely,
-to the general sacred-values relationship. This section sharpens that comparison into an
-explicit head-to-head and reproduces the SI table.
-
-The four indices, exactly as constructed in `import data.do` (lines 409--426):
-
-- `trust_sp_index` --- number of the seven trust-connoting statements the trustee **endorsed**
-  (0--7). Defined for all 121 trustees.
-- `trust_sp_sacred_index` --- of those, the number also **held sacred** (0--7).
-- `trust_revealed_index` --- of the **two** trust-connoting statements eligible to be revealed
-  before the second trust game, the number the trustee **revealed** in the trustworthy
-  direction (0--2).
-- `trust_sacred_revealed_index` --- of those two, the number revealed *and* held sacred (0--2).
-
-**The n = 88 quirk.** The two revealed indices are built as a sum of two per-statement terms,
-each left missing when its statement was concealed. In Stata (and so in the archived `.dta`)
-any arithmetic touching a missing value returns missing, so the index goes missing whenever
-*either* eligible statement was concealed --- it is defined only for trustees who revealed
-**both**. That is 88 of 121 (91 revealed statement 25, 100 revealed statement 33, 88 revealed
-both; "at least one" would have been 103). The revealed-content analyses therefore rest on
-*n* = 88, against *n* = 121 for the held-content and benchmark measures. The check below
-confirms the count.
-
-```{r si-trust-ncheck}
-r25 <- !is.na(trustees$trust_sp_25_rev)
-r33 <- !is.na(trustees$trust_sp_33_rev)
-cat(sprintf("revealed stmt 25: %d | stmt 33: %d | BOTH: %d | AT LEAST ONE: %d\n",
-            sum(r25), sum(r33), sum(r25 & r33), sum(r25 | r33)))
-cat(sprintf("non-missing trust_revealed_index: %d  (= revealed both)\n",
-            sum(!is.na(trustees$trust_revealed_index))))
-```
-
-### Helpers
-
-Predictors are on different scales (0--7, 0--2, counts), so the like-for-like comparison is the
-**standardized** coefficient β; in a single-predictor model *R*² is just β². `uni_fit` returns
-the standardized simple regression for one predictor; `headtohead` adds each content index to
-the outcome's general sacred-values benchmark (sacred values held for trustworthiness, net
-sacred values revealed for change in trust) and reports the index's coefficient before and
-after that adjustment. Every model uses the rows complete on the variables it involves, so the
-*alone* and *adjusted* coefficients for a given index share one sample.
-
-```{r si-trust-helpers}
-# Standardized simple regression of dv on a single predictor xv. ----------------
-uni_fit <- function(data, dv, xv) {
-  d <- data[stats::complete.cases(data[[dv]], data[[xv]]), ]
-  m <- lm(scale(d[[dv]])[, 1] ~ scale(d[[xv]])[, 1])
-  co <- summary(m)$coefficients
-  tibble(Predictor = xv, n = nrow(d), beta = co[2, "Estimate"],
-         p = co[2, "Pr(>|t|)"], R2 = summary(m)$r.squared)
-}
-
-# Univariate bake-off over several predictors, sorted by |beta|. ---------------
-bakeoff <- function(data, dv, predictors) {
-  tab <- bind_rows(lapply(predictors, function(p) uni_fit(data, dv, p)))
-  tab[order(-abs(tab$beta)), ]
-}
-
-# Head-to-head table (reproduces SI Table s3-trust-index): each index alone, then
-# its standardized coefficient once the benchmark is added to the model. --------
-headtohead <- function(data, dv, benchmark, indices) {
-  std <- function(v) scale(v)[, 1]
-  # benchmark row: univariate only
-  bench <- uni_fit(data, dv, benchmark)
-  rows <- list(tibble(Predictor = benchmark, n = bench$n, beta = bench$beta,
-                      p = bench$p, beta_adj = NA_real_, p_adj = NA_real_))
-  for (xv in indices) {
-    u <- uni_fit(data, dv, xv)
-    d <- data[stats::complete.cases(data[[dv]], data[[xv]], data[[benchmark]]), ]
-    m <- lm(std(d[[dv]]) ~ std(d[[benchmark]]) + std(d[[xv]]))
-    co <- summary(m)$coefficients
-    rows[[length(rows) + 1]] <- tibble(
-      Predictor = xv, n = u$n, beta = u$beta, p = u$p,
-      beta_adj = co[3, "Estimate"], p_adj = co[3, "Pr(>|t|)"])
-  }
-  bind_rows(rows)
-}
-```
-
-### Trustworthiness (`Wor_agg_avg`)
-
-```{r si-trust-worthy}
-worthy_uni <- bakeoff(trustees, "Wor_agg_avg",
-                      c("SacPers", "NetRev", "trust_sp_index", "trust_sp_sacred_index"))
-kable(worthy_uni, digits = 3,
-      caption = "Trustworthiness: univariate standardized bake-off (sorted by |beta|). R2 = beta^2.")
-
-worthy_h2h <- headtohead(trustees, "Wor_agg_avg", "SacPers",
-                         c("trust_sp_index", "trust_sp_sacred_index"))
-kable(worthy_h2h, digits = 3,
-      col.names = c("Predictor", "n", "beta", "p", "beta (adj.)", "p (adj.)"),
-      caption = "Trustworthiness head-to-head. `adj.` = the index's standardized coefficient with sacred values held (SacPers) in the model. Reproduces the trustworthiness panel of SI Table s3-trust-index.")
-```
-
-### Change in trust (`Tru_diff`)
-
-```{r si-trust-trust}
-trust_uni <- bakeoff(trustees, "Tru_diff",
-                     c("NetRev", "trust_revealed_index", "trust_sacred_revealed_index"))
-kable(trust_uni, digits = 3,
-      caption = "Change in trust: univariate standardized bake-off (sorted by |beta|). Revealed indices defined on n = 88.")
-
-trust_h2h <- headtohead(trustees, "Tru_diff", "NetRev",
-                        c("trust_revealed_index", "trust_sacred_revealed_index"))
-kable(trust_h2h, digits = 3,
-      col.names = c("Predictor", "n", "beta", "p", "beta (adj.)", "p (adj.)"),
-      caption = "Change-in-trust head-to-head. `adj.` = the index's standardized coefficient with net sacred values revealed (NetRev) in the model. Reproduces the change-in-trust panel of SI Table s3-trust-index.")
-```
-
-**Reading the result.** The general sacred-values measure wins on both outcomes. For
-trustworthiness, sacred values held is the strongest single predictor (β ≈ .34) and neither
-content index adds anything once it is included: the held trust index is null to begin with,
-and the sacred trust index --- respectable alone (β ≈ .27) --- collapses to roughly zero with
-`SacPers` in the model. For change in trust, the net balance revealed is the only measure
-significant on the full sample (β ≈ .23, *p* ≈ .01); the revealed content indices are weaker,
-rest on the smaller *n* = 88, and lose their significance once the net balance is partialled
-out. In no case does specific trust-connoting content explain variance the general
-sacred-values signal does not. These are the numbers behind SI Table `s3-trust-index`.
-
-### Factor loadings versus the aggregate
-
-The SI also checks whether any empirically identified *factor* of the inventory (Section
-`s3-factors`) predicts trustworthiness better than the raw aggregate. It reports that a high
-loading on the first factor goes with greater trustworthiness, but explains **less** variance
-than the total sacred-values count (9.2% versus 11.8%), and that no revealed factor loading
-predicts change in trust. Here `full_f1` is the archived first-factor score (full inventory)
-and `SacPers` the aggregate.
-
-```{r si-factor-r2}
-r2_f1  <- summary(lm(Wor_agg_avg ~ full_f1, data = trustees))$r.squared
-r2_agg <- summary(lm(Wor_agg_avg ~ SacPers, data = trustees))$r.squared
-r2_rf1 <- summary(lm(Tru_diff    ~ rev_f1,  data = trustees))$r.squared
-cat(sprintf("Trustworthiness R^2: first factor (full_f1) = %.1f%% vs aggregate (SacPers) = %.1f%%\n",
-            100 * r2_f1, 100 * r2_agg))
-cat(sprintf("Change in trust R^2: first revealed factor (rev_f1) = %.1f%% (SI: no revealed factor predicts it)\n",
-            100 * r2_rf1))
-```
-
-Both figures reproduce exactly: the aggregate gives 11.8% and the archived first-factor
-score (`full_f1`) gives 9.24% -> 9.2%. The factor explains less than the aggregate.
-
 ## Religiosity, trust and trustworthiness (`s3-religiosity`)
 
 The SI reports that religiosity --- under three measures (any religious affiliation, belief in
@@ -1049,9 +900,6 @@ cat(sprintf("Sacred values ~ religion-is-sacred: Mann-Whitney |z| = %.3f, means 
 Every value reported in the Study 3 SI, collected against its printed figure.
 
 ```{r si-audit}
-# Pull a standardized coefficient (alone or adjusted) out of a head-to-head table by predictor.
-grab <- function(tab, pred, col = "beta") tab[[col]][tab$Predictor == pred]
-
 si_audit <- bind_rows(
   # Beliefs
   audit_row("Belief 'partner trusts more' r (s3-scatter-belief)",       belief_trust$r,  0.428, 0.02, 3),
@@ -1063,21 +911,6 @@ si_audit <- bind_rows(
   audit_row("Revelation chi-square (s3-mixed-logit)",                   reveal_chi$statistic, 28.9, 0.5, 1),
   audit_row("Mixed-logit sacred coef, Model 1",                         rev1_b,         -0.269, 0.02, 3),
   audit_row("Mixed-logit sacred coef, Model 2",                         rev2_b,         -0.245, 0.02, 3),
-  # Trust-connoting content (s3-trust-index)
-  audit_row("Trustworthiness: SacPers beta",           grab(worthy_h2h, "SacPers"),               0.34, 0.03, 2),
-  audit_row("Trustworthiness: trust index beta",       grab(worthy_h2h, "trust_sp_index"),        0.13, 0.03, 2),
-  audit_row("Trustworthiness: trust-sacred index beta",grab(worthy_h2h, "trust_sp_sacred_index"), 0.27, 0.03, 2),
-  audit_row("Trustworthiness: trust-sacred index beta (adj.)",
-            grab(worthy_h2h, "trust_sp_sacred_index", "beta_adj"),                                -0.18, 0.04, 2),
-  audit_row("Change in trust: NetRev beta",            grab(trust_h2h, "NetRev"),                  0.23, 0.03, 2),
-  audit_row("Change in trust: revealed index beta",    grab(trust_h2h, "trust_revealed_index"),    0.19, 0.03, 2),
-  audit_row("Change in trust: sacred-revealed index beta",
-            grab(trust_h2h, "trust_sacred_revealed_index"),                                        0.22, 0.03, 2),
-  audit_row("Change in trust: sacred-revealed index beta (adj.)",
-            grab(trust_h2h, "trust_sacred_revealed_index", "beta_adj"),                            0.11, 0.04, 2),
-  # Factor loadings vs aggregate
-  audit_row("Trustworthiness R^2: first factor",       r2_f1,  0.092, 0.005, 3),
-  audit_row("Trustworthiness R^2: aggregate",          r2_agg, 0.118, 0.01, 3),
   # Religiosity
   audit_row("Religiosity Mann-Whitney |z|",            abs(relig_z), 6.895, 0.05, 3)
 )
