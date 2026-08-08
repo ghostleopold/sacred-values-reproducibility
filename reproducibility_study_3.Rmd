@@ -25,46 +25,24 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 # What this document is
 
-Study 3 is the **incentivized lab trust game** (MonLEE, Monash; international pool,
-N = 242). It is the behavioural anchor of the paper: it tests whether perceived
+Study 3 is the **incentivized lab trust game**: it tests whether perceived
 trustworthiness translates into *trusting behaviour with real money*, and whether that
 trust is *warranted* --- whether sacred valuers actually return more when they could defect.
 
-This pipeline reproduces, from the archived data, **every statistical test reported for
-Study 3 --- in both the main text and the Supporting Information (SI)** --- and audits each
-computed value against the number the *current manuscript* prints. There is a single source
-of truth: the present main text and SI.
+This pipeline reproduces, from the archived data, **every 
+statistical test reported for Study 3 --- in both the main text 
+and the Supporting Information (SI)** --- and audits each 
+computed value against the number the *current manuscript* 
+prints. It follows the same push-button standard as the other pipelines.
 
-**Main-text coverage.** (i) The warranted-trustworthiness result --- the Pearson correlation
-and penalised GAM of the proportion returned on sacred values *held* (`SacPers`), the paper's
-single-panel **Figure 2**, reported as +0.31 percentage points per value held. (ii) The
-now-primary investor result: the **categorical (binary) contrast** between trustees who
-revealed at least one sacred value and those who revealed only tradeable ones (SI
-`sec:s3-binary`), including its controls, its head-to-head against the non-sacred count, and
-its convergence on stated beliefs. (iii) A short check that the analogous **trustee-side
-binary is null** --- the warranted-trust side is genuinely graded, not categorical --- which
-backs the main text's asymmetry claim.
-
-**SI coverage.** The continuous net-balance fit and its controls (`sec:s3-continuous`); the
-alternative regression specifications (`s3-alt-specs`); the post-game **belief** correlations
-(`s3-scatter-belief`, `s3-scatter-trustworthiness`); the willingness-to-revise correlation
-(`s3-survey-revision`); the **revelation-preference** analysis --- the preregistered
-chi-square and the conservative mixed-effects logistic regression (`s3-mixed-logit`); and
-the **religiosity** rank-sum test and table (`s3-religiosity`).
-
-The trustworthiness predictor is `SacPers` (sacred values *held*) by project decision --- the
-conceptually correct measure for "do people who hold sacred values behave more trustworthily?"
-and the one plotted in Figure 2. It follows the same push-button standard as the Studies 1--2
-and 4--5 pipelines (self-contained, data auto-located, targets declared in advance,
-`sessionInfo()` footer).
-
-**Provenance note.** The OSF archive ships the *preregistered* Stata analysis
-(`hypothesis 1/2/3 *.do`: OLS, rank-sum, mixed logit). The paper departs from the
-preregistered investor specification (the raw revealed count) in favour of the categorical
-test the matured index-signal account implies; both the preregistered count model and the
-categorical test are reported. The preregistered OLS port is included in an appendix below for
-transparency. The GAM/correlation R code itself was never archived, so those analyses are
-rebuilt here from the specifications the manuscript describes.
+**Provenance note.** The OSF archive ships the *preregistered* 
+Stata analysis (`hypothesis 1/2/3 *.do`: OLS, rank-sum, mixed 
+logit). The paper departs from the preregistered investor 
+specification (the raw revealed count) in favour of the 
+categorical test that better fits the index-signal account; both 
+the preregistered count model and the categorical test are 
+reported. The preregistered OLS port is included in an appendix 
+below for transparency.
 
 ---
 
@@ -292,7 +270,7 @@ The now-primary investor result. On the index-signal account a revealed sacred v
 a *capacity* --- the ability to internalise a moral rule at all --- so the diagnostic contrast is
 categorical: did the trustee reveal **any** sacred value (`SacRev > 0`), or only tradeable ones?
 Every trustee revealed at least two statements, so the `SacRev == 0` group genuinely revealed
-only values they had priced. This reproduces the main-text paragraph and SI `sec:s3-binary`;
+at least two non-sacred values. This reproduces the main-text paragraph and SI `sec:s3-binary`;
 the source of these numbers is `explorations/study3_netrev_decomposition/` and the figure script
 `scripts/R/study3_investor_binary_violin.R`.
 
@@ -353,12 +331,15 @@ holding the non-sacred count fixed, crossing the sacred threshold still raises t
 while the non-sacred count goes null. The same split predicts the trustee's belief that the
 partner will trust them more.
 
-## The trustee side is graded, not categorical
+## The trustee side
 
-The mirror check the main text cites: binarising the trustworthiness predictor into *any* sacred
-value held versus none does **not** on its own predict trustworthiness --- the warranted-trust
-side is genuinely dose-response, and the continuous count subsumes the binary. This is why the
-paper reports the investor side categorically and the trustee side continuously.
+The mirror check the main text cites: binarising the 
+trustworthiness predictor into *any* sacred value held versus 
+none does **not** on its own predict trustworthiness --- the 
+warranted-trust side is better described by a dose-response, and 
+the continuous count subsumes the binary. This is why the paper 
+reports the investor side categorically and the trustee side 
+continuously.
 
 ```{r binary-trustee}
 trustees <- trustees %>% mutate(any_held = as.integer(SacPers > 0))
@@ -409,32 +390,40 @@ cat(sprintf("  h2h vs count: median-split p = %.3f, SacPers p = %.3f (neither do
             mb_h2h_p, mb_sp_p))
 ```
 
-**Reading the result.** Dichotomising the trustee side *at zero* is marginal alone (+6.4 pp, CLES = .59,
-p = .06), null under controls (p = .15), and the continuous count fully subsumes it (adding the
-count to the binary: F ≈ 12, p < .001; adding the binary to the count: F ≈ 0.1, p = .73). The
-trustee side is genuinely graded --- the reception-vs-trait asymmetry the manuscript describes.
-The zero-cut null is a matter of power, not of the underlying relationship: only 31 of 121 trustees
-held no sacred value, so the cut isolates a small, atypical group and discards the gradient in
-between. Cutting at the **median** (11 values held) instead gives balanced groups (60 vs 61) and
-recovers a clear contrast (+10.9 pp, p < .001, CLES = .68, R² = .11) that survives the greed control
-(p = .002). But that is not a categorical threshold: entered against the continuous count neither
-dominates (median split p = .37, count p = .16), so the median contrast is a coarse proxy for the
-one underlying gradient. This backs the main-text point that the zero split loses power while a
-balanced split recovers the effect.
+**Reading the result.** Dichotomising the trustee side *at zero* 
+is marginal alone (+6.4 pp, CLES = .59, p = .06), null under 
+controls (p = .15), and the continuous count fully subsumes it 
+(adding the count to the binary: F ≈ 12, p < .001; adding the 
+binary to the count: F ≈ 0.1, p = .73). The trustee side is 
+genuinely graded --- the reception-vs-trait asymmetry the 
+manuscript describes.  The zero-cut null is a matter of power, 
+not of the underlying relationship: only 31 of 121 trustees held 
+no sacred value, so the cut isolates a small, atypical group and 
+discards the gradient in between. Cutting at the **median** (11 
+values held) instead gives balanced groups (60 vs 61) and 
+recovers a clear contrast (+10.9 pp, p < .001, CLES = .68, R² = 
+.11) that survives the greed control (p = .002). But that is not 
+a categorical threshold: entered against the continuous count 
+neither dominates (median split p = .37, count p = .16), so the 
+median contrast appears to be a coarse proxy for the one 
+underlying gradient.
+
 
 # SI results
 
 ## Trustworthiness holds within each trust game (`sec:s3-pergame`)
 
-Figure 2 regresses the trustee's return **averaged across both trust games** --- `Wor_agg_avg`
-is the mean of `Wor_pre_avg` (the Phase-1 baseline game, played before the sacred-value
-elicitation) and `Wor_post_avg` (the Phase-3 game, after the trustee's partial revelation).
-Averaging is a noise-reduction move: the two games are two reads on one standing disposition
-(they correlate at *r* ≈ .77), so the mean is the more reliable estimate. It is not manufacturing
-the effect --- the dose-response is present in each game on its own, at similar magnitude. The
-cleanest case is the Phase-1 baseline, played *before* the elicitation even occurred: values held
-still predict returns there, so this is a standing trait, not reactivity to having just priced
-one's values or consistency toward a partner who saw the revelation.
+Figure 2 regresses the trustee's return **averaged across both 
+trust games** --- `Wor_agg_avg` is the mean of `Wor_pre_avg` 
+(the Phase-1 baseline game, played before the sacred-value 
+elicitation) and `Wor_post_avg` (the Phase-3 game, after the 
+trustee's partial revelation).  Averaging is a noise-reduction 
+move: the two games are two reads on one standing disposition 
+(they correlate at *r* ≈ .77), so the mean is the more reliable 
+estimate. The same dose-response is present in each game on its 
+own, at similar magnitude. The cleanest case is the Phase-1 
+baseline, played *before* the elicitation even occurred: values 
+held still predict returns there.
 
 ```{r pergame-worthy}
 # Per-game components of Wor_agg_avg: Wor_pre_avg = Game 1 (Phase-1 baseline),
@@ -468,18 +457,20 @@ print(round(pg_tab, 3))
 
 **Reading the result.** The slope is positive, significant, and near-identical in each game
 (Game 1: +0.28 pp/value, *p* = .001; Game 2: +0.35 pp/value, *p* < .001), and the pooled fit
-(+0.31 pp/value, *p* < .001) sits between them with the tightest *p* --- exactly how averaging two
-correlated measures should behave. Every smooth is linear (edf = 1.00). The averaging in Figure 2
-is a reliability convenience, not a load-bearing analytic choice.
+(+0.31 pp/value, *p* < .001) sits between them with the tightest *p*.
 
 ## Continuous net-balance fit and controls (`sec:s3-continuous`)
 
-The continuous companion to the categorical main-text test. DV = investor trust (`Tru_diff`);
-penalised smooth on the balance of sacred vs non-sacred values the trustee revealed (`NetRev`).
-The SI reports the smooth as effectively linear (edf ≈ 1), smooth F = 5.42, p = .024, with a
-one-SD increase in the net balance worth about +8 pp of the endowment; the association holds
-controlling separately for self-similarity (p = .032) and greed (p = .027) and weakens to
-marginal under both jointly (p = .069). The categorical test above is the more robust to controls.
+The continuous companion to the categorical main-text test. DV = 
+investor trust (`Tru_diff`); penalised smooth on the balance of 
+sacred vs non-sacred values the trustee revealed (`NetRev`).  
+The SI reports the smooth as effectively linear (edf ≈ 1), 
+smooth F = 5.42, p = .024, with a one-SD increase in the net 
+balance worth about +8 pp of the endowment; the association 
+holds controlling separately for self-similarity (p = .032) and 
+greed (p = .027) and weakens to marginal under both controls 
+jointly (p = .069). The categorical test above is the more 
+robust to controls.
 
 Run on the **trustee frame** with `NetRev`, faithful to the archived
 `regress Tru_diff NetRev ... if role_a_b == 2`. Model 1 is numerically identical to a smooth on
@@ -529,10 +520,9 @@ summaries of what the trustee revealed. These are the straight-line
 companions to the continuous NetRev smooth above. The two that carry the headline signalling result at *p* < .05
 are column (4), trust on the **net** balance revealed (`NetRev` = sacred − non-sacred), and
 column (5), the same with `Greed` partialled out. The originally planned `SacRev`-only model is
-column (1) --- the weak specification the SI's own §3.b flags and moves away from. All five are
+column (1) --- the weak specification the SI flags and moves away from. All five are
 run on the trustee frame (`role_a_b == 2`), faithful to the archived `regress Tru_diff ... if
-role_a_b == 2`. Unlike the preregistered H2 port in the appendix, these are results the
-manuscript stands behind, so they carry audit targets.
+role_a_b == 2`.
 
 ```{r si-table7}
 # Five OLS specifications of investor trust change (Tru_diff = ΔTrust) on what the trustee
@@ -591,9 +581,7 @@ specifications --- (4) `NetRev` alone (*b* = .0085, *p* = .011) and (5) `NetRev`
 (*b* = .0077, *p* = .027) --- are both significant at *p* < .05, and `Greed` is far from
 significant (*p* = .39), so partialling it out leaves the signalling effect intact. The
 preregistered `SacRev`-only model (1) is the weak one (*p* = .068); switching to the *balance*
-revealed is what delivers significance and roughly doubles *R*² (.028 → .054). This is the
-linear-model telling of the continuous NetRev GAM finding --- and since that smooth's edf ≈ 1
-reported the relationship as effectively straight, the OLS line here is the same result, plainly stated.
+revealed is what delivers significance and roughly doubles *R*² (.028 → .054).
 
 ## Trustworthiness GAM (robustness on the Figure 2 smooth)
 
@@ -661,9 +649,6 @@ kable(b_tab, digits = 3, caption = "One-SD predicted effects recomputed from the
 
 ## Primary audit (main text + continuous fit)
 
-Every load-bearing Study 3 number in the main text, plus the SI continuous fit, against the value
-the manuscript prints. The remaining SI-only quantities are audited in the SI audit table below.
-
 ```{r audit}
 g4_1 <- gam_smooth(g4_m1)
 s3_audit <- bind_rows(
@@ -693,31 +678,17 @@ s3_audit <- bind_rows(
 kable(s3_audit, align = "lrrl")
 ```
 
-**Reading the result.** The substantive findings reproduce. Warranted trustworthiness (Figure 2):
-trustees who *hold* more sacred values return more, +0.31 pp per value held (+5.7 pp/SD),
-edf ≈ 1. The primary investor result is categorical: crossing the sacred-revelation threshold
-raises trust by ≈ 20 pp (b = .196, CLES = .65, ~8% of variance), robust to controls (b = .167,
-p = .01) and to holding the non-sacred count fixed. The trustee-side binary is null --- the
-warranted side is genuinely graded --- and the continuous NetRev fit (SI) reproduces at F = 5.42,
-one-SD B ≈ .078. Trustee-side binary rows carry no printed manuscript target (the paper makes only
-the qualitative null claim), so they are marked descriptive and checked against the exploration.
-
-> **Note --- two predictors by design.** The investor signal is read categorically off the
-> *balance revealed* (`SacRev > 0`), the noisy partial disclosure a receiver actually sees;
-> trustworthiness is modelled on sacred values *held* (`SacPers`), the complete trait. Different
-> operationalisations by design, not an inconsistency --- the reception-vs-trait asymmetry.
+**Reading the result.** All manuscript figures reproduce.
 
 > **Note --- controls are the trustee's.** The archived `.do` runs the controlled models
-> `... if role_a_b == 2`, so Greed/age/gender are the trustee's.
+> `... if role_a_b == 2`, so the dispositional greed control is the trustee's.
 
 ---
 
 ## SI-only analyses
 
 > **Scope.** The subsections below reproduce every analysis the paper reports **only in the
-> Supporting Information** for Study 3: the post-game belief correlations, the
-> willingness-to-revise correlation, the revelation-preference analysis (preregistered
-> chi-square and the mixed-effects logit), and the religiosity rank-sum table. Each computed
+> Supporting Information** for Study 3. Each computed
 > value is collected into the SI audit table at the end of the section.
 
 ```{r si-load}
@@ -787,8 +758,9 @@ stopifnot("SI claim 'every trustee revealed at least two statements' fails" =
 
 ## Did trustees reveal sacred values preferentially? (`s3-mixed-logit`)
 
-The paper's third, tentative hypothesis was that trustees would preferentially reveal their
-*sacred* values. The originally preregistered test --- a simple chi-square on the pooled
+The study's tentative, third hypothesis was that trustees would preferentially reveal their
+*sacred* values (or equivalently, conceal their non-sacred values). The originally 
+preregistered test --- a simple chi-square on the pooled
 statement-level reveal decisions --- was significant (58% of sacred values revealed versus 45%
 of non-sacred; the SI reports chi-square(1) = 28.9). But that test ignores the non-independence
 of repeated statements and repeated participants. The SI therefore refits the reveal decision
@@ -864,20 +836,44 @@ means (`s3-religiosity`); the *z*-test is on the number of sacred values by the
 religion-is-sacred split, over all 242 trust-game participants.
 
 ```{r si-religiosity}
+# The SI's game-1 trustworthiness figure comes from a bare `Wor_pre` in the archived Stata
+# (`hypothesis 1 - other results.do`), which is never generated anywhere in the current
+# pipeline -- a dangling reference to a pre-reconstruction variable. It is NOT the same
+# construct as `Wor_pre_avg` (the strategy-method mean across all four hypothetical investment
+# levels, generated in `import data.do` and used deliberately as the main-analysis outcome; see
+# `Study 3 Variable Key.docx`). `Wor_pre` is the trustee's strategy-method response at the ONE
+# investment level (`Tru_pre`) the paired investor actually chose -- the realized outcome of the
+# game as played, undefined when the investor invested 0 (22 dyads). Reconstructed here from
+# `t1_response_1..4` indexed by `Tru_pre`; reproduces the SI exactly (see flag below).
+stakes    <- c(3, 6, 9, 12)
+resp_mat  <- as.matrix(tc[paste0("t1_response_", 1:4)])
+wor_pre   <- rep(NA_real_, nrow(tc))
+for (lvl in 1:4) {
+  idx <- which(tc$Tru_pre == lvl)
+  wor_pre[idx] <- resp_mat[idx, lvl] / stakes[lvl]
+}
+tc$Wor_pre <- wor_pre
+
 relig_desc <- function(gvar) {
-  g <- droplevels(as_factor(tc[[gvar]]))
+  # SacPers is a personal attribute, asked of all 242 participants -- no role restriction.
+  # Wor_pre/Tru_post are trustee-side outcomes (dyad-level values live on the trustee's row);
+  # the archived Stata code restricts these to `if role_a_b == 2` and so do we, or the
+  # investor's own religiosity (not the trustee's) leaks into the group means.
+  g   <- droplevels(as_factor(tc[[gvar]]))
+  tct <- tc[tc$role_a_b == 2, ]
+  gt  <- droplevels(as_factor(tct[[gvar]]))
   data.frame(
     Measure   = gvar,
     Group     = levels(g),
-    `Sacred values`      = round(tapply(tc$SacPers,     g, mean, na.rm = TRUE), 1),
-    `Trustworthy (g1)`   = round(tapply(tc$Wor_pre_avg, g, mean, na.rm = TRUE), 2),
-    `Trust received`     = round(tapply(tc$Tru_post,    g, mean, na.rm = TRUE), 2),
+    `Sacred values`      = round(tapply(tc$SacPers,   g,  mean, na.rm = TRUE), 1),
+    `Trustworthy (g1)`   = round(tapply(tct$Wor_pre,   gt, mean, na.rm = TRUE), 2),
+    `Trust received`     = round(tapply(tct$Tru_post,  gt, mean, na.rm = TRUE), 2),
     N         = as.integer(tapply(tc$SacPers, g, function(z) sum(!is.na(z)))),
     check.names = FALSE, row.names = NULL)
 }
 relig_tab <- bind_rows(lapply(c("religious_bin", "believe_god", "religious_sacred"), relig_desc))
 kable(relig_tab, digits = 2,
-      caption = "SI table `s3-religiosity` reproduced --- sacred values, trustworthiness (game 1 proportion returned), and trust received, by religious affiliation / belief in God / religion-is-sacred.")
+      caption = "SI table `s3-religiosity` reproduced --- sacred values, trustworthiness (game 1, realized return at the investment level actually chosen), and trust received, by religious affiliation / belief in God / religion-is-sacred.")
 
 # The one tested effect: sacred values by the religion-is-sacred split.
 rs <- factor(as_factor(tc$religious_sacred))
@@ -889,11 +885,22 @@ cat(sprintf("Sacred values ~ religion-is-sacred: Mann-Whitney |z| = %.3f, means 
             mean(tc$SacPers[tc$religious_sacred == 0], na.rm = TRUE)))
 ```
 
-> **Descriptive flag.** The sacred-values row and the *N* column reproduce the SI table
-> exactly. The trustworthiness-in-game-1 and trust-received rows reproduce the SI's pattern but
-> a few cells differ by ~.02--.05 from the printed figures (e.g. belief-in-God trustworthiness
-> .36/.33 here vs .39/.31 in the SI). These are untested descriptive means; the discrepancy is
-> logged for review, not silently reconciled.
+> **Descriptive flag -- resolved.** All three rows and the *N* column now reproduce the SI table
+> exactly. Two separate issues had compounded: (1) trustworthiness and trust received were
+> computed over all 242 participants rather than the 121 trustees (`role_a_b == 2`, matching the
+> archived Stata's `if role_a_b == 2`); since those outcomes are dyad-level values duplicated onto
+> both partners' rows while religiosity is a personal attribute that differs between partners,
+> pooling both roles let the *investor's* own religiosity leak into the trustee-outcome group
+> means. (2) Trustworthiness in game 1 was read off `Wor_pre_avg` -- the strategy-method mean
+> across all four hypothetical investment levels, and the deliberate main-analysis outcome (see
+> `Study 3 Variable Key.docx`) -- but the SI's descriptive table used a different, un-averaged
+> `Wor_pre`: the trustee's response at the one investment level the paired investor actually chose.
+> That variable is a dangling reference in the current Stata pipeline (never generated in
+> `import data.do`) but is fully reconstructable from `t1_response_1..4` indexed by `Tru_pre`, and
+> doing so above closes the last ~.03 residual. Both are legitimate, different constructs -- the
+> realized outcome of the game as played versus the hypothetical strategy-method average used for
+> the sacred-values analysis -- not a bug in either; nothing about `Wor_agg_avg` or the main-text
+> pipeline is affected.
 
 ## SI audit: computed vs SI
 
