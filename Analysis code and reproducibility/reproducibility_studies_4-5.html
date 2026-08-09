@@ -9,10 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Sacred Values project" />
 
 
-<title>Sacred Values Signal Trustworthiness — Reproducibility Pipeline (Studies 4 &amp; 5)</title>
+<title>Sacred values as index signals of trustworthy character — Reproducibility Pipeline (Studies 4 &amp; 5)</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1671,12 +1670,13 @@ font-size: 0.95em;
 
 
 
-<h1 class="title toc-ignore">Sacred Values Signal Trustworthiness —
-Reproducibility Pipeline (Studies 4 &amp; 5)</h1>
-<h3 class="subtitle">Push-button reproduction of the parallel-mediation
-tests for the two-stage mechanism</h3>
-<h4 class="author">Sacred Values project</h4>
-<h4 class="date">Knitted 09 August 2026</h4>
+<h1 class="title toc-ignore">Sacred values as index signals of
+trustworthy character — Reproducibility Pipeline (Studies 4 &amp;
+5)</h1>
+<h3 class="subtitle">Reproduction of the between-condition effects and
+parallel-mediation tests for Studies 4 and 5, in the main text and the
+Supporting Information</h3>
+<h4 class="date">August 2026</h4>
 
 </div>
 
@@ -1710,20 +1710,21 @@ structural model, with <strong>5,000 bootstrap resamples</strong> and
 <strong>percentile</strong> 95% confidence intervals. We fit this with
 <code>lavaan</code>, mirroring the original analysis.</p>
 <blockquote>
-<p><strong>Runtime.</strong> Four bootstrap models (two studies × two
-outcomes), 5,000 resamples each, take roughly <strong>8–10
-minutes</strong> on first knit. Results are <strong>cached</strong>
-(<code>_rmd_cache/studies-4-5/</code>), so subsequent knits are
-near-instant. To force a clean re-run, delete that folder. To dry-run
-quickly, lower <code>N_BOOT</code> <em>and</em> clear the cache.</p>
+<p><strong>Computational notes.</strong> Four bootstrap models (two
+studies × two outcomes), 5,000 resamples each, take roughly 8–10 minutes
+on the first knit. Results are cached
+(<code>_rmd_cache/studies-4-5/</code>); subsequent knits reuse the
+cache. To force a complete re-run, delete that folder. To reduce runtime
+for a test run, lower <code>N_BOOT</code> <em>and</em> clear the
+cache.</p>
 </blockquote>
 <blockquote>
-<p><strong>A note on the <code>lavaan</code> variance warning.</strong>
-The mediators (perceived sacralization, ~0–1) and the outcomes (0–100
-ratings) live on very different scales, so <code>lavaan</code> prints a
-“variances … a factor 1000 times larger” note. This is cosmetic — it
-reflects the original measurement scales and does not affect the
-estimates — so we suppress it inside the fitting function.</p>
+<p><strong>The <code>lavaan</code> variance warning.</strong> The
+mediators (perceived sacralization, ~0–1) and the outcomes (0–100
+ratings) are measured on very different scales, so <code>lavaan</code>
+prints a “variances … a factor 1000 times larger” note. This reflects
+the original measurement scales and does not affect the estimates; the
+warning is therefore suppressed inside the fitting function.</p>
 </blockquote>
 <hr />
 </div>
@@ -1834,112 +1835,113 @@ the <strong>indirect effects</strong> and the <strong>halo
 <span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a><span class="co"># Beyond the five indirect effects we also declare the TOTAL effect</span></span>
 <span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a><span class="co"># (c&#39; + sum a*b) and each foundation&#39;s indirect effect as a *share of the total</span></span>
 <span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a><span class="co"># effect* (prop%d) plus the overall proportion mediated. lavaan bootstraps these</span></span>
-<span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a><span class="co"># defined parameters automatically, so their percentile CIs come for free and</span></span>
-<span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a><span class="co"># the anchoring numbers the manuscript reports are themselves reproduced here.</span></span>
-<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a>parallel_med_syntax <span class="ot">&lt;-</span> <span class="cf">function</span>(dv, iv, mediators) {</span>
-<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a>  k         <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(mediators)</span>
-<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a>  b_terms   <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;b%d*%s&quot;</span>, k, mediators), <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>)</span>
-<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a>  a_lines   <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%s ~ a%d*%s&quot;</span>, mediators, k, iv), <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a>  ind_def   <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ind%d := a%d*b%d&quot;</span>, k, k, k), <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-48"><a href="#cb4-48" tabindex="-1"></a>  tot_def   <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">&quot;total_indirect := %s&quot;</span>,</span>
-<span id="cb4-49"><a href="#cb4-49" tabindex="-1"></a>                       <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;a%d*b%d&quot;</span>, k, k), <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>))</span>
-<span id="cb4-50"><a href="#cb4-50" tabindex="-1"></a>  teff_def  <span class="ot">&lt;-</span> <span class="st">&quot;total_effect := c + total_indirect&quot;</span></span>
-<span id="cb4-51"><a href="#cb4-51" tabindex="-1"></a>  prop_def  <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;prop%d := ind%d/total_effect&quot;</span>, k, k), <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-52"><a href="#cb4-52" tabindex="-1"></a>  pmed_def  <span class="ot">&lt;-</span> <span class="st">&quot;prop_mediated := total_indirect/total_effect&quot;</span></span>
-<span id="cb4-53"><a href="#cb4-53" tabindex="-1"></a>  <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%s ~ %s + c*%s&quot;</span>, dv, b_terms, iv), a_lines, ind_def, tot_def,</span>
-<span id="cb4-54"><a href="#cb4-54" tabindex="-1"></a>        teff_def, prop_def, pmed_def, <span class="at">sep =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-55"><a href="#cb4-55" tabindex="-1"></a>}</span>
-<span id="cb4-56"><a href="#cb4-56" tabindex="-1"></a></span>
-<span id="cb4-57"><a href="#cb4-57" tabindex="-1"></a><span class="co"># Fit the model with bootstrap, percentile CIs ---------------------------------</span></span>
-<span id="cb4-58"><a href="#cb4-58" tabindex="-1"></a>fit_parallel_med <span class="ot">&lt;-</span> <span class="cf">function</span>(data, dv, iv, mediators,</span>
-<span id="cb4-59"><a href="#cb4-59" tabindex="-1"></a>                             <span class="at">n_boot =</span> N_BOOT, <span class="at">seed =</span> BOOT_SEED) {</span>
-<span id="cb4-60"><a href="#cb4-60" tabindex="-1"></a>  <span class="fu">set.seed</span>(seed)</span>
-<span id="cb4-61"><a href="#cb4-61" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(lavaan<span class="sc">::</span><span class="fu">sem</span>(</span>
-<span id="cb4-62"><a href="#cb4-62" tabindex="-1"></a>    <span class="fu">parallel_med_syntax</span>(dv, iv, mediators),</span>
-<span id="cb4-63"><a href="#cb4-63" tabindex="-1"></a>    <span class="at">data =</span> data, <span class="at">se =</span> <span class="st">&quot;bootstrap&quot;</span>, <span class="at">bootstrap =</span> n_boot))</span>
-<span id="cb4-64"><a href="#cb4-64" tabindex="-1"></a>  pe <span class="ot">&lt;-</span> lavaan<span class="sc">::</span><span class="fu">parameterEstimates</span>(fit, <span class="at">ci =</span> <span class="cn">TRUE</span>, <span class="at">boot.ci.type =</span> <span class="st">&quot;perc&quot;</span>,</span>
-<span id="cb4-65"><a href="#cb4-65" tabindex="-1"></a>                                   <span class="at">standardized =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-66"><a href="#cb4-66" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">fit =</span> fit, <span class="at">pe =</span> pe, <span class="at">n =</span> lavaan<span class="sc">::</span><span class="fu">lavInspect</span>(fit, <span class="st">&quot;ntotal&quot;</span>),</span>
-<span id="cb4-67"><a href="#cb4-67" tabindex="-1"></a>       <span class="at">mediators =</span> mediators, <span class="at">labels =</span> <span class="fu">names</span>(mediators))</span>
-<span id="cb4-68"><a href="#cb4-68" tabindex="-1"></a>}</span>
-<span id="cb4-69"><a href="#cb4-69" tabindex="-1"></a></span>
-<span id="cb4-70"><a href="#cb4-70" tabindex="-1"></a><span class="co"># Tidy the five indirect effects (route to the outcome) ------------------------</span></span>
-<span id="cb4-71"><a href="#cb4-71" tabindex="-1"></a><span class="co"># `Pct_total` anchors each raw indirect effect to the total effect, giving</span></span>
-<span id="cb4-72"><a href="#cb4-72" tabindex="-1"></a><span class="co"># &quot;Harm ~X% of the trust effect&quot; rather than an uninterpretable raw B.</span></span>
-<span id="cb4-73"><a href="#cb4-73" tabindex="-1"></a>tidy_indirect <span class="ot">&lt;-</span> <span class="cf">function</span>(res) {</span>
-<span id="cb4-74"><a href="#cb4-74" tabindex="-1"></a>  k   <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(res<span class="sc">$</span>mediators)</span>
-<span id="cb4-75"><a href="#cb4-75" tabindex="-1"></a>  pe  <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ind%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
-<span id="cb4-76"><a href="#cb4-76" tabindex="-1"></a>  pr  <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;prop%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
-<span id="cb4-77"><a href="#cb4-77" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Foundation =</span> res<span class="sc">$</span>labels,</span>
-<span id="cb4-78"><a href="#cb4-78" tabindex="-1"></a>         <span class="at">B        =</span> <span class="fu">round</span>(pe<span class="sc">$</span>est, <span class="dv">2</span>),</span>
-<span id="cb4-79"><a href="#cb4-79" tabindex="-1"></a>         <span class="at">CI_low   =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.lower, <span class="dv">2</span>),</span>
-<span id="cb4-80"><a href="#cb4-80" tabindex="-1"></a>         <span class="at">CI_high  =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.upper, <span class="dv">2</span>),</span>
-<span id="cb4-81"><a href="#cb4-81" tabindex="-1"></a>         <span class="at">Pct_total =</span> <span class="fu">round</span>(<span class="dv">100</span> <span class="sc">*</span> pr<span class="sc">$</span>est, <span class="dv">1</span>),</span>
-<span id="cb4-82"><a href="#cb4-82" tabindex="-1"></a>         <span class="at">beta_std =</span> <span class="fu">round</span>(pe<span class="sc">$</span>std.all, <span class="dv">3</span>),</span>
-<span id="cb4-83"><a href="#cb4-83" tabindex="-1"></a>         <span class="at">Mediates =</span> <span class="fu">ifelse</span>(pe<span class="sc">$</span>ci.lower <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">|</span> pe<span class="sc">$</span>ci.upper <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="st">&quot;yes&quot;</span>, <span class="st">&quot;no&quot;</span>))</span>
-<span id="cb4-84"><a href="#cb4-84" tabindex="-1"></a>}</span>
-<span id="cb4-85"><a href="#cb4-85" tabindex="-1"></a></span>
-<span id="cb4-86"><a href="#cb4-86" tabindex="-1"></a><span class="co"># Total effect of the IV on the outcome, in outcome-scale points, with its CI.</span></span>
-<span id="cb4-87"><a href="#cb4-87" tabindex="-1"></a>get_total_effect <span class="ot">&lt;-</span> <span class="cf">function</span>(res) {</span>
-<span id="cb4-88"><a href="#cb4-88" tabindex="-1"></a>  te <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="st">&quot;total_effect&quot;</span>, ]</span>
-<span id="cb4-89"><a href="#cb4-89" tabindex="-1"></a>  ti <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="st">&quot;total_indirect&quot;</span>, ]</span>
-<span id="cb4-90"><a href="#cb4-90" tabindex="-1"></a>  pm <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="st">&quot;prop_mediated&quot;</span>, ]</span>
-<span id="cb4-91"><a href="#cb4-91" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">total =</span> te<span class="sc">$</span>est, <span class="at">total_lo =</span> te<span class="sc">$</span>ci.lower, <span class="at">total_hi =</span> te<span class="sc">$</span>ci.upper,</span>
-<span id="cb4-92"><a href="#cb4-92" tabindex="-1"></a>       <span class="at">indirect =</span> ti<span class="sc">$</span>est, <span class="at">prop_mediated =</span> pm<span class="sc">$</span>est)</span>
-<span id="cb4-93"><a href="#cb4-93" tabindex="-1"></a>}</span>
-<span id="cb4-94"><a href="#cb4-94" tabindex="-1"></a></span>
-<span id="cb4-95"><a href="#cb4-95" tabindex="-1"></a><span class="co"># Full decomposition table for the SI: mediator M/SD, a-path (IV -&gt; mediator),</span></span>
-<span id="cb4-96"><a href="#cb4-96" tabindex="-1"></a><span class="co"># b-path (mediator -&gt; outcome), indirect effect, its % of the total effect, and</span></span>
-<span id="cb4-97"><a href="#cb4-97" tabindex="-1"></a><span class="co"># the standardized indirect effect. This is the table that makes B interpretable.</span></span>
-<span id="cb4-98"><a href="#cb4-98" tabindex="-1"></a>tidy_decomp <span class="ot">&lt;-</span> <span class="cf">function</span>(res, data) {</span>
-<span id="cb4-99"><a href="#cb4-99" tabindex="-1"></a>  k   <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(res<span class="sc">$</span>mediators)</span>
-<span id="cb4-100"><a href="#cb4-100" tabindex="-1"></a>  ci  <span class="ot">&lt;-</span> <span class="cf">function</span>(row) <span class="fu">sprintf</span>(<span class="st">&quot;[%.2f, %.2f]&quot;</span>, row<span class="sc">$</span>ci.lower, row<span class="sc">$</span>ci.upper)</span>
-<span id="cb4-101"><a href="#cb4-101" tabindex="-1"></a>  a   <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;a%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
-<span id="cb4-102"><a href="#cb4-102" tabindex="-1"></a>  b   <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;b%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
-<span id="cb4-103"><a href="#cb4-103" tabindex="-1"></a>  ind <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ind%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
-<span id="cb4-104"><a href="#cb4-104" tabindex="-1"></a>  pr  <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;prop%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
-<span id="cb4-105"><a href="#cb4-105" tabindex="-1"></a>  med_M  <span class="ot">&lt;-</span> <span class="fu">vapply</span>(res<span class="sc">$</span>mediators, <span class="cf">function</span>(v) <span class="fu">mean</span>(data[[v]], <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
-<span id="cb4-106"><a href="#cb4-106" tabindex="-1"></a>  med_SD <span class="ot">&lt;-</span> <span class="fu">vapply</span>(res<span class="sc">$</span>mediators, <span class="cf">function</span>(v) <span class="fu">sd</span>(data[[v]],   <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
-<span id="cb4-107"><a href="#cb4-107" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Foundation =</span> res<span class="sc">$</span>labels,</span>
-<span id="cb4-108"><a href="#cb4-108" tabindex="-1"></a>         <span class="at">M_SD      =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f (%.2f)&quot;</span>, med_M, med_SD),</span>
-<span id="cb4-109"><a href="#cb4-109" tabindex="-1"></a>         <span class="at">a_path    =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.3f %s&quot;</span>, a<span class="sc">$</span>est,  <span class="fu">vapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(a)), <span class="cf">function</span>(i) <span class="fu">ci</span>(a[i, ]), <span class="st">&quot;&quot;</span>)),</span>
-<span id="cb4-110"><a href="#cb4-110" tabindex="-1"></a>         <span class="at">b_path    =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f %s&quot;</span>,  b<span class="sc">$</span>est,  <span class="fu">vapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(b)), <span class="cf">function</span>(i) <span class="fu">ci</span>(b[i, ]), <span class="st">&quot;&quot;</span>)),</span>
-<span id="cb4-111"><a href="#cb4-111" tabindex="-1"></a>         <span class="at">Indirect  =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f %s&quot;</span>,  ind<span class="sc">$</span>est, <span class="fu">vapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(ind)), <span class="cf">function</span>(i) <span class="fu">ci</span>(ind[i, ]), <span class="st">&quot;&quot;</span>)),</span>
-<span id="cb4-112"><a href="#cb4-112" tabindex="-1"></a>         <span class="at">Pct_total =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.1f%%&quot;</span>,   <span class="dv">100</span> <span class="sc">*</span> pr<span class="sc">$</span>est),</span>
-<span id="cb4-113"><a href="#cb4-113" tabindex="-1"></a>         <span class="at">beta_std  =</span> <span class="fu">round</span>(ind<span class="sc">$</span>std.all, <span class="dv">3</span>))</span>
-<span id="cb4-114"><a href="#cb4-114" tabindex="-1"></a>}</span>
-<span id="cb4-115"><a href="#cb4-115" tabindex="-1"></a></span>
-<span id="cb4-116"><a href="#cb4-116" tabindex="-1"></a><span class="co"># Tidy the five a-paths (the moral halo: did the display raise each foundation?)-</span></span>
-<span id="cb4-117"><a href="#cb4-117" tabindex="-1"></a>tidy_halo <span class="ot">&lt;-</span> <span class="cf">function</span>(res) {</span>
-<span id="cb4-118"><a href="#cb4-118" tabindex="-1"></a>  k  <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(res<span class="sc">$</span>mediators)</span>
-<span id="cb4-119"><a href="#cb4-119" tabindex="-1"></a>  pe <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;a%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
-<span id="cb4-120"><a href="#cb4-120" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Foundation =</span> res<span class="sc">$</span>labels,</span>
-<span id="cb4-121"><a href="#cb4-121" tabindex="-1"></a>         <span class="at">a        =</span> <span class="fu">round</span>(pe<span class="sc">$</span>est, <span class="dv">3</span>),</span>
-<span id="cb4-122"><a href="#cb4-122" tabindex="-1"></a>         <span class="at">CI_low   =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.lower, <span class="dv">3</span>),</span>
-<span id="cb4-123"><a href="#cb4-123" tabindex="-1"></a>         <span class="at">CI_high  =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.upper, <span class="dv">3</span>),</span>
-<span id="cb4-124"><a href="#cb4-124" tabindex="-1"></a>         <span class="at">p        =</span> <span class="fu">signif</span>(pe<span class="sc">$</span>pvalue, <span class="dv">2</span>),</span>
-<span id="cb4-125"><a href="#cb4-125" tabindex="-1"></a>         <span class="at">Raised   =</span> <span class="fu">ifelse</span>(pe<span class="sc">$</span>pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span>, <span class="st">&quot;yes&quot;</span>, <span class="st">&quot;no&quot;</span>))</span>
-<span id="cb4-126"><a href="#cb4-126" tabindex="-1"></a>}</span>
-<span id="cb4-127"><a href="#cb4-127" tabindex="-1"></a></span>
-<span id="cb4-128"><a href="#cb4-128" tabindex="-1"></a><span class="co"># Pull one indirect effect&#39;s point + CI for the audit table --------------------</span></span>
-<span id="cb4-129"><a href="#cb4-129" tabindex="-1"></a>get_indirect <span class="ot">&lt;-</span> <span class="cf">function</span>(res, foundation) {</span>
-<span id="cb4-130"><a href="#cb4-130" tabindex="-1"></a>  i  <span class="ot">&lt;-</span> <span class="fu">match</span>(foundation, res<span class="sc">$</span>labels)</span>
-<span id="cb4-131"><a href="#cb4-131" tabindex="-1"></a>  pe <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="fu">sprintf</span>(<span class="st">&quot;ind%d&quot;</span>, i), ]</span>
-<span id="cb4-132"><a href="#cb4-132" tabindex="-1"></a>  <span class="fu">c</span>(<span class="at">B =</span> pe<span class="sc">$</span>est, <span class="at">lo =</span> pe<span class="sc">$</span>ci.lower, <span class="at">hi =</span> pe<span class="sc">$</span>ci.upper)</span>
-<span id="cb4-133"><a href="#cb4-133" tabindex="-1"></a>}</span>
-<span id="cb4-134"><a href="#cb4-134" tabindex="-1"></a></span>
-<span id="cb4-135"><a href="#cb4-135" tabindex="-1"></a><span class="co"># Forest plot of the five indirect effects -------------------------------------</span></span>
-<span id="cb4-136"><a href="#cb4-136" tabindex="-1"></a>forest_indirect <span class="ot">&lt;-</span> <span class="cf">function</span>(res, title) {</span>
-<span id="cb4-137"><a href="#cb4-137" tabindex="-1"></a>  df <span class="ot">&lt;-</span> <span class="fu">tidy_indirect</span>(res)</span>
-<span id="cb4-138"><a href="#cb4-138" tabindex="-1"></a>  df<span class="sc">$</span>Foundation <span class="ot">&lt;-</span> <span class="fu">factor</span>(df<span class="sc">$</span>Foundation, <span class="at">levels =</span> <span class="fu">rev</span>(res<span class="sc">$</span>labels))</span>
-<span id="cb4-139"><a href="#cb4-139" tabindex="-1"></a>  <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(B, Foundation, <span class="at">colour =</span> Mediates)) <span class="sc">+</span></span>
-<span id="cb4-140"><a href="#cb4-140" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">colour =</span> <span class="st">&quot;grey50&quot;</span>) <span class="sc">+</span></span>
-<span id="cb4-141"><a href="#cb4-141" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> CI_low, <span class="at">xmax =</span> CI_high), <span class="at">linewidth =</span> <span class="fl">0.7</span>, <span class="at">size =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb4-142"><a href="#cb4-142" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">no =</span> <span class="st">&quot;#9aa0a6&quot;</span>, <span class="at">yes =</span> <span class="st">&quot;#1a73e8&quot;</span>),</span>
-<span id="cb4-143"><a href="#cb4-143" tabindex="-1"></a>                        <span class="at">name =</span> <span class="st">&quot;Mediates trust</span><span class="sc">\n</span><span class="st">(95% CI excl. 0)&quot;</span>) <span class="sc">+</span></span>
-<span id="cb4-144"><a href="#cb4-144" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> title, <span class="at">x =</span> <span class="st">&quot;Indirect effect on trustworthiness (B)&quot;</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb4-145"><a href="#cb4-145" tabindex="-1"></a>    <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span>
-<span id="cb4-146"><a href="#cb4-146" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a><span class="co"># defined parameters automatically, so their percentile CIs come from the same</span></span>
+<span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a><span class="co"># resampling pass and the anchoring numbers the manuscript reports are themselves</span></span>
+<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a><span class="co"># reproduced here.</span></span>
+<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a>parallel_med_syntax <span class="ot">&lt;-</span> <span class="cf">function</span>(dv, iv, mediators) {</span>
+<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a>  k         <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(mediators)</span>
+<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a>  b_terms   <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;b%d*%s&quot;</span>, k, mediators), <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>)</span>
+<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a>  a_lines   <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%s ~ a%d*%s&quot;</span>, mediators, k, iv), <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-48"><a href="#cb4-48" tabindex="-1"></a>  ind_def   <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ind%d := a%d*b%d&quot;</span>, k, k, k), <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-49"><a href="#cb4-49" tabindex="-1"></a>  tot_def   <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">&quot;total_indirect := %s&quot;</span>,</span>
+<span id="cb4-50"><a href="#cb4-50" tabindex="-1"></a>                       <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;a%d*b%d&quot;</span>, k, k), <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>))</span>
+<span id="cb4-51"><a href="#cb4-51" tabindex="-1"></a>  teff_def  <span class="ot">&lt;-</span> <span class="st">&quot;total_effect := c + total_indirect&quot;</span></span>
+<span id="cb4-52"><a href="#cb4-52" tabindex="-1"></a>  prop_def  <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;prop%d := ind%d/total_effect&quot;</span>, k, k), <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-53"><a href="#cb4-53" tabindex="-1"></a>  pmed_def  <span class="ot">&lt;-</span> <span class="st">&quot;prop_mediated := total_indirect/total_effect&quot;</span></span>
+<span id="cb4-54"><a href="#cb4-54" tabindex="-1"></a>  <span class="fu">paste</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%s ~ %s + c*%s&quot;</span>, dv, b_terms, iv), a_lines, ind_def, tot_def,</span>
+<span id="cb4-55"><a href="#cb4-55" tabindex="-1"></a>        teff_def, prop_def, pmed_def, <span class="at">sep =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-56"><a href="#cb4-56" tabindex="-1"></a>}</span>
+<span id="cb4-57"><a href="#cb4-57" tabindex="-1"></a></span>
+<span id="cb4-58"><a href="#cb4-58" tabindex="-1"></a><span class="co"># Fit the model with bootstrap, percentile CIs ---------------------------------</span></span>
+<span id="cb4-59"><a href="#cb4-59" tabindex="-1"></a>fit_parallel_med <span class="ot">&lt;-</span> <span class="cf">function</span>(data, dv, iv, mediators,</span>
+<span id="cb4-60"><a href="#cb4-60" tabindex="-1"></a>                             <span class="at">n_boot =</span> N_BOOT, <span class="at">seed =</span> BOOT_SEED) {</span>
+<span id="cb4-61"><a href="#cb4-61" tabindex="-1"></a>  <span class="fu">set.seed</span>(seed)</span>
+<span id="cb4-62"><a href="#cb4-62" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(lavaan<span class="sc">::</span><span class="fu">sem</span>(</span>
+<span id="cb4-63"><a href="#cb4-63" tabindex="-1"></a>    <span class="fu">parallel_med_syntax</span>(dv, iv, mediators),</span>
+<span id="cb4-64"><a href="#cb4-64" tabindex="-1"></a>    <span class="at">data =</span> data, <span class="at">se =</span> <span class="st">&quot;bootstrap&quot;</span>, <span class="at">bootstrap =</span> n_boot))</span>
+<span id="cb4-65"><a href="#cb4-65" tabindex="-1"></a>  pe <span class="ot">&lt;-</span> lavaan<span class="sc">::</span><span class="fu">parameterEstimates</span>(fit, <span class="at">ci =</span> <span class="cn">TRUE</span>, <span class="at">boot.ci.type =</span> <span class="st">&quot;perc&quot;</span>,</span>
+<span id="cb4-66"><a href="#cb4-66" tabindex="-1"></a>                                   <span class="at">standardized =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-67"><a href="#cb4-67" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">fit =</span> fit, <span class="at">pe =</span> pe, <span class="at">n =</span> lavaan<span class="sc">::</span><span class="fu">lavInspect</span>(fit, <span class="st">&quot;ntotal&quot;</span>),</span>
+<span id="cb4-68"><a href="#cb4-68" tabindex="-1"></a>       <span class="at">mediators =</span> mediators, <span class="at">labels =</span> <span class="fu">names</span>(mediators))</span>
+<span id="cb4-69"><a href="#cb4-69" tabindex="-1"></a>}</span>
+<span id="cb4-70"><a href="#cb4-70" tabindex="-1"></a></span>
+<span id="cb4-71"><a href="#cb4-71" tabindex="-1"></a><span class="co"># Tidy the five indirect effects (route to the outcome) ------------------------</span></span>
+<span id="cb4-72"><a href="#cb4-72" tabindex="-1"></a><span class="co"># `Pct_total` anchors each raw indirect effect to the total effect, giving</span></span>
+<span id="cb4-73"><a href="#cb4-73" tabindex="-1"></a><span class="co"># &quot;Harm ~X% of the trust effect&quot; rather than an uninterpretable raw B.</span></span>
+<span id="cb4-74"><a href="#cb4-74" tabindex="-1"></a>tidy_indirect <span class="ot">&lt;-</span> <span class="cf">function</span>(res) {</span>
+<span id="cb4-75"><a href="#cb4-75" tabindex="-1"></a>  k   <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(res<span class="sc">$</span>mediators)</span>
+<span id="cb4-76"><a href="#cb4-76" tabindex="-1"></a>  pe  <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ind%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
+<span id="cb4-77"><a href="#cb4-77" tabindex="-1"></a>  pr  <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;prop%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
+<span id="cb4-78"><a href="#cb4-78" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Foundation =</span> res<span class="sc">$</span>labels,</span>
+<span id="cb4-79"><a href="#cb4-79" tabindex="-1"></a>         <span class="at">B        =</span> <span class="fu">round</span>(pe<span class="sc">$</span>est, <span class="dv">2</span>),</span>
+<span id="cb4-80"><a href="#cb4-80" tabindex="-1"></a>         <span class="at">CI_low   =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.lower, <span class="dv">2</span>),</span>
+<span id="cb4-81"><a href="#cb4-81" tabindex="-1"></a>         <span class="at">CI_high  =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.upper, <span class="dv">2</span>),</span>
+<span id="cb4-82"><a href="#cb4-82" tabindex="-1"></a>         <span class="at">Pct_total =</span> <span class="fu">round</span>(<span class="dv">100</span> <span class="sc">*</span> pr<span class="sc">$</span>est, <span class="dv">1</span>),</span>
+<span id="cb4-83"><a href="#cb4-83" tabindex="-1"></a>         <span class="at">beta_std =</span> <span class="fu">round</span>(pe<span class="sc">$</span>std.all, <span class="dv">3</span>),</span>
+<span id="cb4-84"><a href="#cb4-84" tabindex="-1"></a>         <span class="at">Mediates =</span> <span class="fu">ifelse</span>(pe<span class="sc">$</span>ci.lower <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">|</span> pe<span class="sc">$</span>ci.upper <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="st">&quot;yes&quot;</span>, <span class="st">&quot;no&quot;</span>))</span>
+<span id="cb4-85"><a href="#cb4-85" tabindex="-1"></a>}</span>
+<span id="cb4-86"><a href="#cb4-86" tabindex="-1"></a></span>
+<span id="cb4-87"><a href="#cb4-87" tabindex="-1"></a><span class="co"># Total effect of the IV on the outcome, in outcome-scale points, with its CI.</span></span>
+<span id="cb4-88"><a href="#cb4-88" tabindex="-1"></a>get_total_effect <span class="ot">&lt;-</span> <span class="cf">function</span>(res) {</span>
+<span id="cb4-89"><a href="#cb4-89" tabindex="-1"></a>  te <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="st">&quot;total_effect&quot;</span>, ]</span>
+<span id="cb4-90"><a href="#cb4-90" tabindex="-1"></a>  ti <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="st">&quot;total_indirect&quot;</span>, ]</span>
+<span id="cb4-91"><a href="#cb4-91" tabindex="-1"></a>  pm <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="st">&quot;prop_mediated&quot;</span>, ]</span>
+<span id="cb4-92"><a href="#cb4-92" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">total =</span> te<span class="sc">$</span>est, <span class="at">total_lo =</span> te<span class="sc">$</span>ci.lower, <span class="at">total_hi =</span> te<span class="sc">$</span>ci.upper,</span>
+<span id="cb4-93"><a href="#cb4-93" tabindex="-1"></a>       <span class="at">indirect =</span> ti<span class="sc">$</span>est, <span class="at">prop_mediated =</span> pm<span class="sc">$</span>est)</span>
+<span id="cb4-94"><a href="#cb4-94" tabindex="-1"></a>}</span>
+<span id="cb4-95"><a href="#cb4-95" tabindex="-1"></a></span>
+<span id="cb4-96"><a href="#cb4-96" tabindex="-1"></a><span class="co"># Full decomposition table for the SI: mediator M/SD, a-path (IV -&gt; mediator),</span></span>
+<span id="cb4-97"><a href="#cb4-97" tabindex="-1"></a><span class="co"># b-path (mediator -&gt; outcome), indirect effect, its % of the total effect, and</span></span>
+<span id="cb4-98"><a href="#cb4-98" tabindex="-1"></a><span class="co"># the standardized indirect effect. This is the table that makes B interpretable.</span></span>
+<span id="cb4-99"><a href="#cb4-99" tabindex="-1"></a>tidy_decomp <span class="ot">&lt;-</span> <span class="cf">function</span>(res, data) {</span>
+<span id="cb4-100"><a href="#cb4-100" tabindex="-1"></a>  k   <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(res<span class="sc">$</span>mediators)</span>
+<span id="cb4-101"><a href="#cb4-101" tabindex="-1"></a>  ci  <span class="ot">&lt;-</span> <span class="cf">function</span>(row) <span class="fu">sprintf</span>(<span class="st">&quot;[%.2f, %.2f]&quot;</span>, row<span class="sc">$</span>ci.lower, row<span class="sc">$</span>ci.upper)</span>
+<span id="cb4-102"><a href="#cb4-102" tabindex="-1"></a>  a   <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;a%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
+<span id="cb4-103"><a href="#cb4-103" tabindex="-1"></a>  b   <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;b%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
+<span id="cb4-104"><a href="#cb4-104" tabindex="-1"></a>  ind <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ind%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
+<span id="cb4-105"><a href="#cb4-105" tabindex="-1"></a>  pr  <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;prop%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
+<span id="cb4-106"><a href="#cb4-106" tabindex="-1"></a>  med_M  <span class="ot">&lt;-</span> <span class="fu">vapply</span>(res<span class="sc">$</span>mediators, <span class="cf">function</span>(v) <span class="fu">mean</span>(data[[v]], <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb4-107"><a href="#cb4-107" tabindex="-1"></a>  med_SD <span class="ot">&lt;-</span> <span class="fu">vapply</span>(res<span class="sc">$</span>mediators, <span class="cf">function</span>(v) <span class="fu">sd</span>(data[[v]],   <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb4-108"><a href="#cb4-108" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Foundation =</span> res<span class="sc">$</span>labels,</span>
+<span id="cb4-109"><a href="#cb4-109" tabindex="-1"></a>         <span class="at">M_SD      =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f (%.2f)&quot;</span>, med_M, med_SD),</span>
+<span id="cb4-110"><a href="#cb4-110" tabindex="-1"></a>         <span class="at">a_path    =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.3f %s&quot;</span>, a<span class="sc">$</span>est,  <span class="fu">vapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(a)), <span class="cf">function</span>(i) <span class="fu">ci</span>(a[i, ]), <span class="st">&quot;&quot;</span>)),</span>
+<span id="cb4-111"><a href="#cb4-111" tabindex="-1"></a>         <span class="at">b_path    =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f %s&quot;</span>,  b<span class="sc">$</span>est,  <span class="fu">vapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(b)), <span class="cf">function</span>(i) <span class="fu">ci</span>(b[i, ]), <span class="st">&quot;&quot;</span>)),</span>
+<span id="cb4-112"><a href="#cb4-112" tabindex="-1"></a>         <span class="at">Indirect  =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f %s&quot;</span>,  ind<span class="sc">$</span>est, <span class="fu">vapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(ind)), <span class="cf">function</span>(i) <span class="fu">ci</span>(ind[i, ]), <span class="st">&quot;&quot;</span>)),</span>
+<span id="cb4-113"><a href="#cb4-113" tabindex="-1"></a>         <span class="at">Pct_total =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.1f%%&quot;</span>,   <span class="dv">100</span> <span class="sc">*</span> pr<span class="sc">$</span>est),</span>
+<span id="cb4-114"><a href="#cb4-114" tabindex="-1"></a>         <span class="at">beta_std  =</span> <span class="fu">round</span>(ind<span class="sc">$</span>std.all, <span class="dv">3</span>))</span>
+<span id="cb4-115"><a href="#cb4-115" tabindex="-1"></a>}</span>
+<span id="cb4-116"><a href="#cb4-116" tabindex="-1"></a></span>
+<span id="cb4-117"><a href="#cb4-117" tabindex="-1"></a><span class="co"># Tidy the five a-paths (the moral halo: did the display raise each foundation?)-</span></span>
+<span id="cb4-118"><a href="#cb4-118" tabindex="-1"></a>tidy_halo <span class="ot">&lt;-</span> <span class="cf">function</span>(res) {</span>
+<span id="cb4-119"><a href="#cb4-119" tabindex="-1"></a>  k  <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(res<span class="sc">$</span>mediators)</span>
+<span id="cb4-120"><a href="#cb4-120" tabindex="-1"></a>  pe <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[<span class="fu">match</span>(<span class="fu">sprintf</span>(<span class="st">&quot;a%d&quot;</span>, k), res<span class="sc">$</span>pe<span class="sc">$</span>label), ]</span>
+<span id="cb4-121"><a href="#cb4-121" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Foundation =</span> res<span class="sc">$</span>labels,</span>
+<span id="cb4-122"><a href="#cb4-122" tabindex="-1"></a>         <span class="at">a        =</span> <span class="fu">round</span>(pe<span class="sc">$</span>est, <span class="dv">3</span>),</span>
+<span id="cb4-123"><a href="#cb4-123" tabindex="-1"></a>         <span class="at">CI_low   =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.lower, <span class="dv">3</span>),</span>
+<span id="cb4-124"><a href="#cb4-124" tabindex="-1"></a>         <span class="at">CI_high  =</span> <span class="fu">round</span>(pe<span class="sc">$</span>ci.upper, <span class="dv">3</span>),</span>
+<span id="cb4-125"><a href="#cb4-125" tabindex="-1"></a>         <span class="at">p        =</span> <span class="fu">signif</span>(pe<span class="sc">$</span>pvalue, <span class="dv">2</span>),</span>
+<span id="cb4-126"><a href="#cb4-126" tabindex="-1"></a>         <span class="at">Raised   =</span> <span class="fu">ifelse</span>(pe<span class="sc">$</span>pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span>, <span class="st">&quot;yes&quot;</span>, <span class="st">&quot;no&quot;</span>))</span>
+<span id="cb4-127"><a href="#cb4-127" tabindex="-1"></a>}</span>
+<span id="cb4-128"><a href="#cb4-128" tabindex="-1"></a></span>
+<span id="cb4-129"><a href="#cb4-129" tabindex="-1"></a><span class="co"># Pull one indirect effect&#39;s point + CI for the audit table --------------------</span></span>
+<span id="cb4-130"><a href="#cb4-130" tabindex="-1"></a>get_indirect <span class="ot">&lt;-</span> <span class="cf">function</span>(res, foundation) {</span>
+<span id="cb4-131"><a href="#cb4-131" tabindex="-1"></a>  i  <span class="ot">&lt;-</span> <span class="fu">match</span>(foundation, res<span class="sc">$</span>labels)</span>
+<span id="cb4-132"><a href="#cb4-132" tabindex="-1"></a>  pe <span class="ot">&lt;-</span> res<span class="sc">$</span>pe[res<span class="sc">$</span>pe<span class="sc">$</span>label <span class="sc">==</span> <span class="fu">sprintf</span>(<span class="st">&quot;ind%d&quot;</span>, i), ]</span>
+<span id="cb4-133"><a href="#cb4-133" tabindex="-1"></a>  <span class="fu">c</span>(<span class="at">B =</span> pe<span class="sc">$</span>est, <span class="at">lo =</span> pe<span class="sc">$</span>ci.lower, <span class="at">hi =</span> pe<span class="sc">$</span>ci.upper)</span>
+<span id="cb4-134"><a href="#cb4-134" tabindex="-1"></a>}</span>
+<span id="cb4-135"><a href="#cb4-135" tabindex="-1"></a></span>
+<span id="cb4-136"><a href="#cb4-136" tabindex="-1"></a><span class="co"># Forest plot of the five indirect effects -------------------------------------</span></span>
+<span id="cb4-137"><a href="#cb4-137" tabindex="-1"></a>forest_indirect <span class="ot">&lt;-</span> <span class="cf">function</span>(res, title) {</span>
+<span id="cb4-138"><a href="#cb4-138" tabindex="-1"></a>  df <span class="ot">&lt;-</span> <span class="fu">tidy_indirect</span>(res)</span>
+<span id="cb4-139"><a href="#cb4-139" tabindex="-1"></a>  df<span class="sc">$</span>Foundation <span class="ot">&lt;-</span> <span class="fu">factor</span>(df<span class="sc">$</span>Foundation, <span class="at">levels =</span> <span class="fu">rev</span>(res<span class="sc">$</span>labels))</span>
+<span id="cb4-140"><a href="#cb4-140" tabindex="-1"></a>  <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(B, Foundation, <span class="at">colour =</span> Mediates)) <span class="sc">+</span></span>
+<span id="cb4-141"><a href="#cb4-141" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">colour =</span> <span class="st">&quot;grey50&quot;</span>) <span class="sc">+</span></span>
+<span id="cb4-142"><a href="#cb4-142" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> CI_low, <span class="at">xmax =</span> CI_high), <span class="at">linewidth =</span> <span class="fl">0.7</span>, <span class="at">size =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb4-143"><a href="#cb4-143" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">no =</span> <span class="st">&quot;#9aa0a6&quot;</span>, <span class="at">yes =</span> <span class="st">&quot;#1a73e8&quot;</span>),</span>
+<span id="cb4-144"><a href="#cb4-144" tabindex="-1"></a>                        <span class="at">name =</span> <span class="st">&quot;Mediates trust</span><span class="sc">\n</span><span class="st">(95% CI excl. 0)&quot;</span>) <span class="sc">+</span></span>
+<span id="cb4-145"><a href="#cb4-145" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> title, <span class="at">x =</span> <span class="st">&quot;Indirect effect on trustworthiness (B)&quot;</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb4-146"><a href="#cb4-146" tabindex="-1"></a>    <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span>
+<span id="cb4-147"><a href="#cb4-147" tabindex="-1"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># One audit row: computed value vs the manuscript&#39;s reported value.</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>audit_row <span class="ot">&lt;-</span> <span class="cf">function</span>(quantity, computed, claimed, tol, <span class="at">digits =</span> <span class="dv">2</span>) {</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  fmt <span class="ot">&lt;-</span> <span class="cf">function</span>(v) <span class="cf">if</span> (<span class="fu">is.na</span>(v)) <span class="st">&quot;--&quot;</span> <span class="cf">else</span> <span class="fu">formatC</span>(v, <span class="at">format =</span> <span class="st">&quot;f&quot;</span>, <span class="at">digits =</span> digits)</span>
@@ -2446,7 +2448,7 @@ manuscript (Study 4)</h2>
 <span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>s4_ind <span class="ot">&lt;-</span> <span class="fu">tidy_indirect</span>(s4_trust)</span>
 <span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>s4_te  <span class="ot">&lt;-</span> <span class="fu">get_total_effect</span>(s4_trust)</span>
 <span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>s4_audit <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(</span>
-<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;N (analysed)&quot;</span>,                <span class="fu">nrow</span>(s4),     <span class="dv">289</span>, <span class="fl">0.1</span>, <span class="dv">0</span>),</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;N (analyzed)&quot;</span>,                <span class="fu">nrow</span>(s4),     <span class="dv">289</span>, <span class="fl">0.1</span>, <span class="dv">0</span>),</span>
 <span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trust r (= Z/sqrt(N))&quot;</span>,       s4_tr_r,     <span class="fl">0.59</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
 <span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trust CLES&quot;</span>,                  s4_tr_cles,  <span class="fl">0.84</span>, <span class="fl">0.01</span>, <span class="dv">2</span>),</span>
 <span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Total effect on trust (pts)&quot;</span>, s4_te<span class="sc">$</span>total, <span class="fl">28.6</span>, <span class="fl">0.3</span>, <span class="dv">1</span>),</span>
@@ -2472,7 +2474,7 @@ manuscript (Study 4)</h2>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">N (analysed)</td>
+<td align="left">N (analyzed)</td>
 <td align="right">289</td>
 <td align="right">289</td>
 <td align="left">match</td>
@@ -2565,7 +2567,7 @@ what Study 5 addresses.</p>
 <h2><span class="header-section-number">3.8</span> SI: intercorrelations
 (<code>tbl:s4-intercorr</code>)</h2>
 <p>Zero-order Pearson correlations among trustworthiness, social
-acceptance (the affiliation composite – labelled “social acceptance”
+acceptance (the affiliation composite – labeled “social acceptance”
 rather than “social desirability”, as it is not the response-bias
 construct), and the five perceived-sacralization proportions, with the
 group means and SDs the SI reports.</p>
@@ -3156,8 +3158,8 @@ prepare</h2>
 <span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>             <span class="at">Loyalty =</span> <span class="st">&quot;Never_InGrp&quot;</span>, <span class="at">Purity =</span> <span class="st">&quot;Never_Pure&quot;</span>)</span>
 <span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>s5_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Cond_01&quot;</span>, <span class="st">&quot;Trust_Att&quot;</span>, <span class="st">&quot;Int_Rel&quot;</span>, <span class="fu">unname</span>(s5_meds))</span>
 <span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a></span>
-<span id="cb34-5"><a href="#cb34-5" tabindex="-1"></a><span class="co"># Proper exclusion: dplyr::filter drops the NA-exclusion row (the old base-R</span></span>
-<span id="cb34-6"><a href="#cb34-6" tabindex="-1"></a><span class="co"># `d[d$Exclusion==0, ]` kept a phantom all-NA row, inflating N to 289).</span></span>
+<span id="cb34-5"><a href="#cb34-5" tabindex="-1"></a><span class="co"># Apply the exclusion criterion with filter(), which also drops rows with a</span></span>
+<span id="cb34-6"><a href="#cb34-6" tabindex="-1"></a><span class="co"># missing exclusion flag; the resulting analytic sample is N = 288.</span></span>
 <span id="cb34-7"><a href="#cb34-7" tabindex="-1"></a>s5 <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(s5_file) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Exclusion <span class="sc">==</span> <span class="dv">0</span>)</span>
 <span id="cb34-8"><a href="#cb34-8" tabindex="-1"></a><span class="cf">for</span> (v <span class="cf">in</span> s5_vars) s5[[v]] <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(s5[[v]])</span>
 <span id="cb34-9"><a href="#cb34-9" tabindex="-1"></a></span>
@@ -3541,7 +3543,7 @@ manuscript (Study 5)</h2>
 <span id="cb48-4"><a href="#cb48-4" tabindex="-1"></a>s5_ind <span class="ot">&lt;-</span> <span class="fu">tidy_indirect</span>(s5_trust)</span>
 <span id="cb48-5"><a href="#cb48-5" tabindex="-1"></a>s5_te  <span class="ot">&lt;-</span> <span class="fu">get_total_effect</span>(s5_trust)</span>
 <span id="cb48-6"><a href="#cb48-6" tabindex="-1"></a>s5_audit <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(</span>
-<span id="cb48-7"><a href="#cb48-7" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;N (analysed)&quot;</span>,            <span class="fu">nrow</span>(s5),    <span class="dv">288</span>, <span class="fl">0.1</span>, <span class="dv">0</span>),</span>
+<span id="cb48-7"><a href="#cb48-7" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;N (analyzed)&quot;</span>,            <span class="fu">nrow</span>(s5),    <span class="dv">288</span>, <span class="fl">0.1</span>, <span class="dv">0</span>),</span>
 <span id="cb48-8"><a href="#cb48-8" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trust r (= Z/sqrt(N))&quot;</span>,   s5_tr_r,    <span class="fl">0.37</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
 <span id="cb48-9"><a href="#cb48-9" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Trust CLES&quot;</span>,              s5_tr_cles, <span class="fl">0.71</span>, <span class="fl">0.01</span>, <span class="dv">2</span>),</span>
 <span id="cb48-10"><a href="#cb48-10" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Total effect on trust (pts)&quot;</span>, s5_te<span class="sc">$</span>total, <span class="fl">12.1</span>, <span class="fl">0.3</span>, <span class="dv">1</span>),</span>
@@ -3563,7 +3565,7 @@ manuscript (Study 5)</h2>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">N (analysed)</td>
+<td align="left">N (analyzed)</td>
 <td align="right">288</td>
 <td align="right">288</td>
 <td align="left">match</td>
@@ -4842,9 +4844,9 @@ suppression-free decompositions of the model <span class="math inline">\(R^2\)</
 weights</strong> and Budescu’s (1993) <strong>general dominance</strong>
 — and report <strong>VIFs</strong> to quantify the collinearity
 directly. A sign flip between the zero-order <code>r_trust</code> and
-the partial <code>beta_partial</code> is the suppression tell behind the
-negative indirect effects; a VIF above ~5 would signal disabling
-collinearity.</p>
+the partial <code>beta_partial</code> indicates suppression, which
+underlies the negative indirect effects; a VIF above ~5 would signal
+disabling collinearity.</p>
 <div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">file.path</span>(<span class="fu">find_data_root</span>(<span class="at">marker =</span> <span class="st">&quot;scripts&quot;</span>), <span class="st">&quot;scripts&quot;</span>, <span class="st">&quot;R&quot;</span>, <span class="st">&quot;collinearity_helpers.R&quot;</span>))</span>
 <span id="cb75-2"><a href="#cb75-2" tabindex="-1"></a></span>
 <span id="cb75-3"><a href="#cb75-3" tabindex="-1"></a>s4_rw <span class="ot">&lt;-</span> <span class="fu">collinearity_table</span>(<span class="fu">as.data.frame</span>(s4), <span class="st">&quot;Trust_Att&quot;</span>,</span>
@@ -5032,12 +5034,12 @@ above.</caption>
 </tbody>
 </table>
 <p>Under these order-independent decompositions Study 4 does
-<strong>not</strong> rank Harm first (Fairness edges it and every
-bootstrap CI overlaps): a single between-subjects scenario cannot
-separate the near-collinear foundations. Study 5 puts Harm first (~39%
-of <span class="math inline">\(R^2\)</span>), consistent with the b-path
-story, though its CI is wide. All VIFs sit below 5, so the collinearity
-is moderate, not disabling.</p>
+<strong>not</strong> rank Harm first (Fairness ranks marginally higher,
+and every bootstrap CI overlaps): a single between-subjects scenario
+cannot separate the near-collinear foundations. Study 5 puts Harm first
+(~39% of <span class="math inline">\(R^2\)</span>), consistent with the
+b-path story, though its CI is wide. All VIFs sit below 5, so the
+collinearity is moderate, not disabling.</p>
 <hr />
 </div>
 <div id="audit-summary" class="section level1" number="6">
@@ -5045,20 +5047,10 @@ is moderate, not disabling.</p>
 <pre><code>## Audited claims: 56 | match: 55 | close (bootstrap/rounding noise): 0 | DIFFERS: 0</code></pre>
 <p><strong>Reading the result.</strong> The competing-mediator point
 estimates reproduce the manuscript to two decimals (Study 4: Harm 4.46,
-Fairness 4.34; Study 5: Harm 1.24); the bootstrap CIs sit within noise
-of the published intervals. The qualitative pattern — full halo with a
-Harm–Fairness route in Study 4, partial halo with a Harm-only route in
-Study 5 — reproduces exactly. The single substantive flag is
-<strong>Study 5’s sample size (288, not 289)</strong>.</p>
-<blockquote>
-<p><strong>Provenance caution.</strong> The legacy comment blocks in
-<code>scripts/R/04_study4.R</code> and
-<code>scripts/R/05_study5.R</code> cite <em>stale</em> “manuscript”
-values (Study 4’s were the Study 6 numbers; Study 5’s <code>2.71</code>
-does not appear in the current text). The targets audited here are taken
-from the <strong>current manuscript</strong> (Results, paras on Studies
-4–5), which the data confirm.</p>
-</blockquote>
+Fairness 4.34; Study 5: Harm 1.24); the bootstrap confidence intervals
+agree with the published intervals to within resampling variation. The
+qualitative pattern — full halo with a Harm–Fairness route in Study 4,
+partial halo with a Harm-only route in Study 5 — reproduces exactly.</p>
 <hr />
 </div>
 <div id="reproducibility-record" class="section level1" number="7">

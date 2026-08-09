@@ -1,8 +1,7 @@
 ---
 title: "Sacred values as index signals of trustworthy character --- Reproducibility Pipeline (Studies 1 & 2)"
-subtitle: "Push-button reproduction of every statistical test reported for Studies 1 and 2, in both the main text and the Supporting Information"
-author: "Sacred Values project"
-date: "Knitted `r format(Sys.Date(), '%d %B %Y')`"
+subtitle: "Reproduction of every statistical test reported for Studies 1 and 2, in the main text and the Supporting Information"
+date: "August 2026"
 output:
   html_document:
     theme: flatly
@@ -45,8 +44,8 @@ file is built to satisfy their criteria:
 | Ready-to-run, no author intervention | One `.Rmd`; `Knit` runs everything top to bottom. |
 | Raw data + analysis code together | Reads the original `.sav` files directly; no hidden intermediate datasets. |
 | No machine-specific paths | Data location is auto-detected by walking up the directory tree; no absolute paths, no `setwd()`. |
-| Data structure matches code | Sample sizes are **asserted** (`stopifnot`) against the paper's reported *N*; the knit fails loudly if the data drifted. |
-| Key results declared in advance | Reported values are written into a target table *before* the data are analysed, then compared automatically. |
+| Data structure matches code | Sample sizes are **asserted** (`stopifnot`) against the paper's reported *N*; execution terminates if the expected sample size is not recovered. |
+| Key results declared in advance | Reported values are written into a target table *before* the data are analyzed, then compared automatically. |
 | Documented software environment | Full `sessionInfo()` and package versions are printed at the end. |
 | Reproducible randomness | A single global seed is set; every bootstrap additionally fixes its own seed. |
 
@@ -74,7 +73,7 @@ set.seed(20260619)
 The data live in a `data/` folder (a copy of the OSF archive at
 <https://osf.io/ju9rq/>). Rather than hard-code a path, we locate that folder by walking
 up from wherever this file is knitted. To run against data stored elsewhere, set
-`DATA_DIR` by hand in the chunk below.
+`DATA_DIR` manually in the chunk below.
 
 ```{r data-root}
 # Walk up the directory tree until we find a folder containing `marker`.
@@ -120,10 +119,10 @@ cat("Data directory:\n  ", rel_to_root(DATA_DIR), "\n")
 
 ## Statistical helper functions {.tabset}
 
-These functions do all the statistical work. (Click the **Code** toggle to collapse them.)
+These functions do all the statistical work.
 
 ```{r helpers}
-# Mean of a set of items, coercing SPSS labelled columns to plain numeric -----
+# Mean of a set of items, coercing SPSS labeled columns to plain numeric ------
 composite <- function(df, items) {
   rowMeans(sapply(items, function(v) as.numeric(df[[v]])), na.rm = TRUE)
 }
@@ -301,7 +300,7 @@ item_table <- function(df, items, labels, si_t, si_d) {
 ```{r s1-prep}
 s1 <- read_sav(s1_file)
 
-# Pre-registered exclusions: keep Exclusion == 0 ("Good").
+# Preregistered exclusions: keep Exclusion == 0 ("Good").
 s1a <- s1 %>% filter(Exclusion == 0)
 
 # Condition: string "Sell" / "Sacred" -> x = 1 for the sacred (refuser) target.
@@ -323,10 +322,10 @@ s1a$selfish <- as.numeric(s1a$Trust_Att_7)
 s1a$joint   <- as.numeric(s1a$Joint_D)
 s1a$psv     <- as.numeric(s1a$P_SV)
 
-# Push-button check: the data must have the N the paper claims.
+# Verify the analytic sample matches the reported N.
 stopifnot("Study 1 N after exclusions != 281" = nrow(s1a) == 281L)
 
-# And our hand-built composites must equal the pre-baked OSF columns.
+# And our reconstructed composites must equal the precomputed OSF columns.
 stopifnot(
   max(abs(s1a$trust  - s1a$Trust_C),  na.rm = TRUE) < 1e-6,
   max(abs(s1a$accept - s1a$Rel_Comp), na.rm = TRUE) < 1e-6
@@ -415,9 +414,9 @@ s1_norm <- tibble(
 s1_norm %>% mutate(W = round(W, 3), p = signif(p, 3))
 ```
 
-## Pre-registered parametric tests --- *SI*
+## Preregistered parametric tests --- *SI*
 
-The SI reports the pre-registered *t*-tests (main analysis uses non-parametric tests
+The SI reports the preregistered *t*-tests (main analysis uses non-parametric tests
 because of the normality violations above). Composite trust and composite interpersonal
 relationships first, then trait by trait and relationship by relationship. Cohen's *d*
 uses the pooled SD.
@@ -604,7 +603,7 @@ kable(s1_audit, align = "lrrl")
 ```{r s2-prep}
 s2 <- read_sav(s2_file)
 
-# Pre-registered exclusions: keep Exclusions == 0 ("Good").
+# Preregistered exclusions: keep Exclusions == 0 ("Good").
 s2a <- s2 %>% filter(Exclusions == 0)
 
 # Condition: Cond_01  (0 = non-sacred, 1 = sacred) per OSF variable key.
@@ -691,7 +690,7 @@ s2_norm <- tibble(
 s2_norm %>% mutate(W = round(W, 3), p = signif(p, 3))
 ```
 
-## Pre-registered parametric tests --- *SI*
+## Preregistered parametric tests --- *SI*
 
 ```{r s2-parametric}
 s2_t_trust  <- welch_d(s2a$trust,  s2a$x)

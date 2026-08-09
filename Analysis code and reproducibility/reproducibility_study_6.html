@@ -9,10 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Sacred Values project" />
 
 
-<title>Sacred Values Signal Trustworthiness — Reproducibility Pipeline (Study 6)</title>
+<title>Sacred values as index signals of trustworthy character — Reproducibility Pipeline (Study 6)</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1671,12 +1670,12 @@ font-size: 0.95em;
 
 
 
-<h1 class="title toc-ignore">Sacred Values Signal Trustworthiness —
-Reproducibility Pipeline (Study 6)</h1>
-<h3 class="subtitle">Within-subjects test: a broad halo in, a narrow
-harm door out</h3>
-<h4 class="author">Sacred Values project</h4>
-<h4 class="date">Knitted 09 August 2026</h4>
+<h1 class="title toc-ignore">Sacred values as index signals of
+trustworthy character — Reproducibility Pipeline (Study 6)</h1>
+<h3 class="subtitle">Reproduction of the within-subjects test across the
+five moral foundations, in the main text and the Supporting
+Information</h3>
+<h4 class="date">August 2026</h4>
 
 </div>
 
@@ -1692,12 +1691,13 @@ sacralization on every foundation), and the <strong>multilevel parallel
 mediation</strong> showing perceived Harm to be the dominant route to
 trust.</p>
 <blockquote>
-<p><strong>Runtime.</strong> The multilevel mediation uses a clustered
-bootstrap (5,000 resamples on 4,860 rows) and takes ~3 minutes; it is
-<strong>cached</strong> (<code>_rmd_cache/study-6/</code>), so re-knits
-are instant. The <code>lavaan</code> “variance ratio” note (mediators on
-a 0–1 scale, trust on 0–100) is benign and suppressed inside the fitting
-function.</p>
+<p><strong>Computational notes.</strong> The multilevel mediation uses a
+clustered bootstrap (5,000 resamples on 4,860 rows) and takes ~3
+minutes; results are cached (<code>_rmd_cache/study-6/</code>), so
+subsequent knits reuse the cache. The <code>lavaan</code> “variance
+ratio” note (mediators on a 0–1 scale, trust on 0–100) reflects the
+measurement scales, does not affect the estimates, and is suppressed
+inside the fitting function.</p>
 </blockquote>
 <hr />
 </div>
@@ -1761,7 +1761,7 @@ function.</p>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># Alongside the five indirect effects we declare the TOTAL effect (c&#39; + sum a*b),</span></span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co"># each foundation&#39;s share of that total effect (prop%d), and the overall</span></span>
 <span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># proportion mediated -- so the manuscript&#39;s &quot;X% of the trust effect&quot; anchoring</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co"># is bootstrapped here rather than computed by hand.</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co"># is bootstrapped here rather than computed post hoc.</span></span>
 <span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>ml_med_syntax <span class="ot">&lt;-</span> <span class="cf">function</span>(dv, iv, mediators) {</span>
 <span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  k <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(mediators)</span>
 <span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="fu">paste</span>(</span>
@@ -1852,18 +1852,18 @@ function.</p>
 <h2><span class="header-section-number">2.2</span> Load and prepare</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(s6_file)</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co"># Pre-registered exclusions: keep Exclusions == 0.</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co"># Preregistered exclusions: keep Exclusions == 0.</span></span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>ad <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Exclusions <span class="sc">==</span> <span class="dv">0</span>)</span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>ad<span class="sc">$</span>FoundationVignette <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">as_factor</span>(ad<span class="sc">$</span>FoundationVignette))</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="cf">for</span> (v <span class="cf">in</span> <span class="fu">c</span>(<span class="st">&quot;Trustworthiness&quot;</span>, <span class="st">&quot;SV_Condition&quot;</span>, <span class="fu">unname</span>(S6_MEDS))) ad[[v]] <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(ad[[v]])</span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>ad<span class="sc">$</span>Participant_ID <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(ad<span class="sc">$</span>Participant_ID)</span>
 <span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co"># Foundation-block labels. FoundationVignette is coded 1-5 with NO value labels in the .sav</span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co"># (and the archived author R code never names the levels either). The mapping</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co"># 1=Harm, 2=Fairness, 3=Authority, 4=Loyalty, 5=Purity is NOT guessed: it is recovered</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co"># structurally from the per-participant assignment columns and asserted in the next section</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co"># (see &quot;Data structure&quot;). It is also consistent with each block&#39;s between-condition trust Z</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co"># (Harm 24.22, Fairness 20.75, Authority 20.83, Loyalty 21.62, Purity 20.72 --- all exact).</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co"># Foundation-block labels. FoundationVignette is coded 1-5 with no value labels in</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co"># the .sav. The mapping 1=Harm, 2=Fairness, 3=Authority, 4=Loyalty, 5=Purity is</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co"># recovered structurally from the per-participant assignment columns and asserted in</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co"># the next section (see &quot;Data structure&quot;). It is also consistent with each block&#39;s</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co"># between-condition trust Z (Harm 24.22, Fairness 20.75, Authority 20.83,</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co"># Loyalty 21.62, Purity 20.72 --- all exact).</span></span>
 <span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>ad<span class="sc">$</span>FVcode <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(ad<span class="sc">$</span>FoundationVignette))</span>
 <span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>ad<span class="sc">$</span>Block  <span class="ot">&lt;-</span> <span class="fu">factor</span>(ad<span class="sc">$</span>FVcode, <span class="at">levels =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
 <span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>                    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;Harm&quot;</span>, <span class="st">&quot;Fairness&quot;</span>, <span class="st">&quot;Authority&quot;</span>, <span class="st">&quot;Loyalty&quot;</span>, <span class="st">&quot;Purity&quot;</span>))</span>
@@ -1882,15 +1882,16 @@ function.</p>
 <div id="data-structure-what-foundationvignette-encodes" class="section level1" number="3">
 <h1><span class="header-section-number">3</span> Data structure: what
 <code>FoundationVignette</code> encodes</h1>
-<p><strong>Read this before trusting any per-foundation number.</strong>
-Study 6 is within-subjects: every participant contributes <strong>five
-rows</strong> to the long dataset, one per moral foundation.</p>
+<p>Study 6 is within-subjects: every participant contributes
+<strong>five rows</strong> to the long dataset, one per moral
+foundation. The structure of these rows governs every per-foundation
+analysis below.</p>
 <ul>
 <li><code>FoundationVignette</code> (1–5) identifies <strong>which
 foundation</strong> a row’s vignette targeted.</li>
 <li><code>SV_Condition</code> (0/1) is whether that vignette was the
 <strong>non-sacred</strong> or <strong>sacred</strong> version.</li>
-<li>The randomisation is <strong>within foundation</strong>: each
+<li>The randomization is <strong>within foundation</strong>: each
 participant is independently assigned to sacred or non-sacred on each of
 the five foundations. <code>condition_string</code>
 (e.g. <code>&quot;CTCCT&quot;</code>) records one participant’s five-way treatment
@@ -1899,25 +1900,22 @@ pattern.</li>
 <p>So <code>FoundationVignette</code> is a <strong>fixed foundation
 identity, not a presentation-order slot</strong> — block 1 is the Harm
 vignette for <em>every</em> participant. (Presentation order was
-separately randomised but is not recoverable from the archived data; see
-the deferred first-block section.)</p>
+separately randomized and is not carried in the long dataset; see the
+first-block section below.)</p>
 <p><strong>The block <span class="math inline">\(\rightarrow\)</span>
 foundation mapping is stored implicitly, but is fully
 recoverable.</strong> The <code>.sav</code> gives
-<code>FoundationVignette</code> no value labels, and the author’s
-archived R code simply <code>factor()</code>s the bare integer without
-naming it. The identity of each block is nonetheless pinned down by the
-per-participant assignment columns <code>Harm</code>,
-<code>Fairness</code>, <code>Loyalty</code>, <code>Authority</code>,
-<code>Purity</code>, each valued <code>&quot;&lt;X&gt;_SV&quot;</code> /
-<code>&quot;&lt;X&gt;_NSV&quot;</code>. Within a given block, the row’s
-<code>SV_Condition</code> must equal that foundation’s assignment.
-Decoding those columns to 1/0 and checking agreement with
-<code>SV_Condition</code>, <strong>each block matches exactly one
-foundation at agreement = 1.000</strong> (all others ~0.40). The chunk
-below performs that check and <code>stopifnot()</code>s the labels used
-above, so any future mislabelling fails the knit loudly rather than
-silently.</p>
+<code>FoundationVignette</code> no value labels. The identity of each
+block is nonetheless pinned down by the per-participant assignment
+columns <code>Harm</code>, <code>Fairness</code>, <code>Loyalty</code>,
+<code>Authority</code>, <code>Purity</code>, each valued
+<code>&quot;&lt;X&gt;_SV&quot;</code> / <code>&quot;&lt;X&gt;_NSV&quot;</code>. Within a
+given block, the row’s <code>SV_Condition</code> must equal that
+foundation’s assignment. Decoding those columns to 1/0 and checking
+agreement with <code>SV_Condition</code>, <strong>each block matches
+exactly one foundation at agreement = 1.000</strong> (all others ~0.40).
+The chunk below performs that check and asserts the labels used above
+(<code>stopifnot()</code>), so a mislabeling would halt execution.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Structural verification of the block -&gt; foundation mapping (see prose above).</span></span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>assign_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">Harm =</span> <span class="st">&quot;Harm&quot;</span>, <span class="at">Fairness =</span> <span class="st">&quot;Fairness&quot;</span>, <span class="at">Loyalty =</span> <span class="st">&quot;Loyalty&quot;</span>,</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>                 <span class="at">Authority =</span> <span class="st">&quot;Authority&quot;</span>, <span class="at">Purity =</span> <span class="st">&quot;Purity&quot;</span>)</span>
@@ -2321,9 +2319,9 @@ standardized indirect effect.</caption>
 </tbody>
 </table>
 </div>
-<div id="standardized-paths-fig.-4-betas-broad-halo-in-narrow-door-out" class="section level2" number="6.3">
+<div id="standardized-paths-fig.-4-betas" class="section level2" number="6.3">
 <h2><span class="header-section-number">6.3</span> Standardized paths
-(Fig. 4 betas: broad halo in, narrow door out)</h2>
+(Fig. 4 betas)</h2>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">tidy_paths_std</span>(s6_med),</span>
 <span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;Standardized coefficients: a_beta = sacred -&gt; perceived sacralization (the halo); b_beta = sacralization -&gt; trust (the route).&quot;</span>)</span></code></pre></div>
 <table>
@@ -2390,7 +2388,7 @@ foundation.</p>
 <span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a>                            <span class="fu">unname</span>(S6_MEDS), <span class="fu">names</span>(S6_MEDS),</span>
 <span id="cb27-5"><a href="#cb27-5" tabindex="-1"></a>                            <span class="at">cluster =</span> <span class="st">&quot;Participant_ID&quot;</span>, <span class="at">seed =</span> <span class="dv">2024</span><span class="dt">L</span>)</span>
 <span id="cb27-6"><a href="#cb27-6" tabindex="-1"></a><span class="fu">kable</span>(s6_rw, <span class="at">caption =</span> <span class="fu">sprintf</span>(</span>
-<span id="cb27-7"><a href="#cb27-7" tabindex="-1"></a>  <span class="st">&quot;Study 6: relative importance of the five foundations for trust ($R^2$ = %.3f), cluster-bootstrapped on participant. RW_pct = Johnson relative weight (%% of $R^2$); Dominance_pct = general dominance (%% of $R^2$); RW_lo/hi = bootstrap 95%% CI on the relative-weight share. A sign flip between r_trust and beta_partial is a suppression tell.&quot;</span>,</span>
+<span id="cb27-7"><a href="#cb27-7" tabindex="-1"></a>  <span class="st">&quot;Study 6: relative importance of the five foundations for trust ($R^2$ = %.3f), cluster-bootstrapped on participant. RW_pct = Johnson relative weight (%% of $R^2$); Dominance_pct = general dominance (%% of $R^2$); RW_lo/hi = bootstrap 95%% CI on the relative-weight share. A sign flip between r_trust and beta_partial indicates suppression.&quot;</span>,</span>
 <span id="cb27-8"><a href="#cb27-8" tabindex="-1"></a>  <span class="fu">attr</span>(s6_rw, <span class="st">&quot;R2&quot;</span>)))</span></code></pre></div>
 <table>
 <caption>Study 6: relative importance of the five foundations for trust
@@ -2398,7 +2396,7 @@ foundation.</p>
 on participant. RW_pct = Johnson relative weight (% of <span class="math inline">\(R^2\)</span>); Dominance_pct = general dominance
 (% of <span class="math inline">\(R^2\)</span>); RW_lo/hi = bootstrap
 95% CI on the relative-weight share. A sign flip between r_trust and
-beta_partial is a suppression tell.</caption>
+beta_partial indicates suppression.</caption>
 <colgroup>
 <col width="19%" />
 <col width="12%" />
@@ -4612,12 +4610,14 @@ permutation of {1,2,3,4,5} (asserted below), all 120 orderings occur,
 and <code>Participant_ID</code> joins one-to-one to the long data. The
 first block is the foundation with rank 1; the whole sequence is
 recovered as a by-product.</p>
-<p>Two of the authors’ pre-computed wide columns are
-<strong>not</strong> used here: <code>FirstBlockGroup</code> (drops the
-191 Fairness-first participants to <code>NA</code>) and
-<code>Trust_FirstBlock</code> (only ~74% consistent with the true first
-block). The first-block subset is rebuilt from scratch off the rank
-columns, covering <strong>all 972 included participants</strong>.</p>
+<p>Two precomputed wide columns are <strong>not</strong> used here:
+<code>FirstBlockGroup</code>, which is incomplete (the 191
+Fairness-first participants are coded <code>NA</code>), and
+<code>Trust_FirstBlock</code>, which is only ~74% consistent with the
+presentation order recovered from the rank columns. Because these fields
+are incomplete and inconsistent, the first-block subset is instead
+reconstructed from the rank columns, covering <strong>all 972 included
+participants</strong>.</p>
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a><span class="co"># Recover presentation order from the WIDE dataset&#39;s per-foundation rank columns.</span></span>
 <span id="cb49-2"><a href="#cb49-2" tabindex="-1"></a>s6_wide_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">find_data_root</span>(), <span class="st">&quot;data&quot;</span>,</span>
 <span id="cb49-3"><a href="#cb49-3" tabindex="-1"></a>                          <span class="st">&quot;Study 6 - Sacralization of Moral Foundations&quot;</span>,</span>
@@ -4895,10 +4895,11 @@ percentile CIs), full N.</caption>
 <span id="cb64-6"><a href="#cb64-6" tabindex="-1"></a>            harm_med<span class="sc">$</span>Indirect, harm_med<span class="sc">$</span>CI_low, harm_med<span class="sc">$</span>CI_high,</span>
 <span id="cb64-7"><a href="#cb64-7" tabindex="-1"></a>            <span class="fu">paste</span>(fb_ind<span class="sc">$</span>Foundation[fb_ind<span class="sc">$</span>Mediates <span class="sc">==</span> <span class="st">&quot;yes&quot;</span>], <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>)))</span></code></pre></div>
 <pre><code>## First block: Harm indirect = 7.47 [5.22, 9.72]; mediating foundations: Harm, Fairness.</code></pre>
-<p>The first-block-only analysis reproduces the paper’s story on a clean
-between-subjects footing and the full N = 972: a large condition effect
-on trust, a broad halo across all five foundations, and a mediation
-dominated by perceived sacralization of the Harm foundation.</p>
+<p>The first-block-only analysis reproduces the paper’s central result
+on a between-subjects footing and the full N = 972: a large condition
+effect on trust, a broad halo across all five foundations, and a
+mediation dominated by perceived sacralization of the Harm
+foundation.</p>
 </div>
 </div>
 <div id="audit-study-6-si" class="section level2" number="8.8">

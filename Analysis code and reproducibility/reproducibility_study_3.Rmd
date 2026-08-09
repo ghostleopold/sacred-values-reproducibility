@@ -1,8 +1,7 @@
 ---
-title: "Sacred Values Signal Trustworthiness --- Reproducibility Pipeline (Study 3)"
-subtitle: "The incentivized trust game: behaviourally real and warranted trust"
-author: "Sacred Values project"
-date: "Knitted `r format(Sys.Date(), '%d %B %Y')`"
+title: "Sacred values as index signals of trustworthy character --- Reproducibility Pipeline (Study 3)"
+subtitle: "Reproduction of the incentivized trust-game results for Study 3, in the main text and the Supporting Information"
+date: "August 2026"
 output:
   html_document:
     theme: flatly
@@ -26,23 +25,23 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 # What this document is
 
 Study 3 is the **incentivized lab trust game**: it tests whether perceived
-trustworthiness translates into *trusting behaviour with real money*, and whether that
+trustworthiness translates into *trusting behavior with real money*, and whether that
 trust is *warranted* --- whether sacred valuers actually return more when they could defect.
 
-This pipeline reproduces, from the archived data, **every 
-statistical test reported for Study 3 --- in both the main text 
-and the Supporting Information (SI)** --- and audits each 
-computed value against the number the *current manuscript* 
-prints. It follows the same push-button standard as the other pipelines.
+This pipeline reproduces, from the archived data, **every
+statistical test reported for Study 3 --- in both the main text
+and the Supporting Information (SI)** --- and audits each
+computed value against the number printed in the manuscript.
+It follows the same push-button standard as the other pipelines.
 
-**Provenance note.** The OSF archive ships the *preregistered* 
-Stata analysis (`hypothesis 1/2/3 *.do`: OLS, rank-sum, mixed 
-logit). The paper departs from the preregistered investor 
-specification (the raw revealed count) in favour of the 
-categorical test that better fits the index-signal account; both 
-the preregistered count model and the categorical test are 
-reported. The preregistered OLS port is included in an appendix 
-below for transparency.
+**Preregistration and analysis code.** The OSF archive contains the
+*preregistered* Stata analysis (`hypothesis 1/2/3 *.do`: OLS,
+rank-sum, mixed logit). As disclosed in the manuscript, the paper
+departs from the preregistered investor specification (the raw
+revealed count) in favor of the categorical test that better fits
+the index-signal account; both the preregistered count model and
+the categorical test are reproduced here. A port of the
+preregistered OLS specifications is included in an appendix below.
 
 ---
 
@@ -153,7 +152,7 @@ audit_row <- function(quantity, computed, claimed, tol, digits = 2) {
 raw <- read_dta(s3_file)
 
 # --- Revealed-similarity ("self-similarity") factors --------------------------------
-# Reconstructs `hypothesis 2 code.do`: min-max normalise the three sacred-inventory
+# Reconstructs `hypothesis 2 code.do`: min-max normalize the three sacred-inventory
 # factor scores (full inventory and revealed-only), weight the revealed scores by the
 # number of statements the trustee revealed, then for each trustee take the negated
 # Euclidean distance between the investor partner's full-inventory score and the
@@ -161,7 +160,7 @@ raw <- read_dta(s3_file)
 # similar on that factor. Built **once** here so both the controlled models and the
 # preregistered OLS port (H2, appendix) consume a single construction.
 nrm <- function(x) { r <- range(x, na.rm = TRUE); (x - r[1]) / (r[2] - r[1]) }
-full <- raw                                   # normalise over the full archive, per the .do order
+full <- raw                                   # normalize over the full archive, per the .do order
 for (i in 1:3) {
   full[[paste0("f", i, "n")]]  <- nrm(full[[paste0("full_f", i)]])
   full[[paste0("r", i, "n")]]  <- nrm(full[[paste0("rev_f", i)]])
@@ -236,14 +235,14 @@ cat(sprintf("Trustworthiness: +%.2f pp per sacred value held; +%.1f pp per 1 SD 
             summary(lm(Wor_agg_avg ~ SacPers, data = trustees))$coefficients["SacPers", "Pr(>|t|)"]))
 ```
 
-The reproduction figure is a **single trustworthiness panel** matching the current manuscript
-Figure 2: the penalised GAM (k = 3) of proportion returned on sacred values held, raw scatter
+The reproduction figure is a **single trustworthiness panel** matching the manuscript's
+Figure 2: the penalized GAM (k = 3) of proportion returned on sacred values held, raw scatter
 removed and the vertical axis zoomed to the fitted curve and its 95% band, so the band's
-departure from the flat no-effect line is legible. The manuscript PDF is written by the bespoke
+departure from the flat no-effect line is legible. The manuscript PDF is produced by the
 script `scripts/R/study3_partials_figure.R` (`Figures/study3_trustgame_partials.pdf`); this
 reproduces the same smooth.
 
-```{r figure, fig.width=5.5, fig.height=4.2, fig.cap="Study 3, Figure 2 (single panel). Penalised GAM fit (k = 3, REML) of the proportion returned on the trustee's own sacred values held, with the raw scatter removed and the vertical axis zoomed. Line is the GAM fit; shaded band is the 95% CI; dashed line is the no-effect reference; tick marks show observed values held."}
+```{r figure, fig.width=5.5, fig.height=4.2, fig.cap="Study 3, Figure 2 (single panel). Penalized GAM fit (k = 3, REML) of the proportion returned on the trustee's own sacred values held, with the raw scatter removed and the vertical axis zoomed. Line is the GAM fit; shaded band is the 95% CI; dashed line is the no-effect reference; tick marks show observed values held."}
 # Manuscript Figure 2: stiff (k = 3) GAM partial fit of trustworthiness on values held,
 # scatter removed and axis zoomed. Same smooth-only model as the trustworthiness GAM below.
 gfig_worthy <- gam(Wor_agg_avg ~ s(SacPers, k = 3), data = trustees, method = "REML")
@@ -273,8 +272,8 @@ ggplot(fig_df, aes(x, fit)) +
 
 ## The investor signal: a categorical (binary) test
 
-The now-primary investor result. On the index-signal account a revealed sacred value discloses
-a *capacity* --- the ability to internalise a moral rule at all --- so the diagnostic contrast is
+The primary investor result. On the index-signal account a revealed sacred value discloses
+a *capacity* --- the ability to internalize a moral rule at all --- so the diagnostic contrast is
 categorical: did the trustee reveal **any** sacred value (`SacRev > 0`), or only tradeable ones?
 Every trustee revealed at least two statements, so the `SacRev == 0` group genuinely revealed
 at least two non-sacred values. This reproduces the main-text paragraph and SI `sec:s3-binary`;
@@ -302,8 +301,8 @@ m_binc  <- lm(Tru_diff ~ any_sacred + wsim1 + wsim2 + wsim3 + Greed, data = trus
 binc_b  <- coef(m_binc)["any_sacred"]
 binc_p  <- summary(m_binc)$coefficients["any_sacred", "Pr(>|t|)"]
 
-# Genuine sacred threshold, not the non-sacred penalty in disguise: hold the non-sacred
-# count (and total revealed) fixed and the threshold still moves trust.
+# Confirm a sacred-value threshold rather than a penalty on non-sacred revelations:
+# hold the non-sacred count (and total revealed) fixed and the threshold still moves trust.
 m_binn  <- lm(Tru_diff ~ any_sacred + NonSacRev, data = trustees)
 binn_b  <- coef(m_binn)["any_sacred"]
 binn_p  <- summary(m_binn)$coefficients["any_sacred", "Pr(>|t|)"]
@@ -333,14 +332,14 @@ held roughly steady toward the some-sacred group (mean change ≈ -0.03) and was
 the only-tradeable group (≈ -0.22) --- a gap of about 20 percentage points of the endowment
 (b = .196, p = .002, CLES = .65), accounting for about 8% of the variance. It survives controls
 for self-similarity and greed (b = .167, p = .01) where the continuous `NetRev` fit decays to
-marginal, and it is a genuine sacred threshold rather than the non-sacred penalty in disguise:
+marginal, and it reflects a sacred-value threshold rather than a penalty on non-sacred revelations:
 holding the non-sacred count fixed, crossing the sacred threshold still raises trust (p = .028)
 while the non-sacred count goes null. The same split predicts the trustee's belief that the
 partner will trust them more.
 
 ## The trustee side
 
-The mirror check the main text cites: binarising the 
+The mirror check the main text cites: binarizing the
 trustworthiness predictor into *any* sacred value held versus 
 none does **not** on its own predict trustworthiness --- the 
 warranted-trust side is better described by a dose-response, and 
@@ -397,7 +396,7 @@ cat(sprintf("  h2h vs count: median-split p = %.3f, SacPers p = %.3f (neither do
             mb_h2h_p, mb_sp_p))
 ```
 
-**Reading the result.** Dichotomising the trustee side *at zero* 
+**Reading the result.** Dichotomizing the trustee side *at zero*
 is marginal alone (+6.4 pp, CLES = .59, p = .06), null under 
 controls (p = .15), and the continuous count fully subsumes it 
 (adding the count to the binary: F ≈ 12, p < .001; adding the 
@@ -468,8 +467,8 @@ print(round(pg_tab, 3))
 
 ## Continuous net-balance fit and controls (`sec:s3-continuous`)
 
-The continuous companion to the categorical main-text test. DV = 
-investor trust (`Tru_diff`); penalised smooth on the balance of 
+The continuous companion to the categorical main-text test. DV =
+investor trust (`Tru_diff`); penalized smooth on the balance of
 sacred vs non-sacred values the trustee revealed (`NetRev`).  
 The SI reports the smooth as effectively linear (edf ≈ 1), 
 smooth F = 5.42, p = .024, with a one-SD increase in the net 
@@ -521,10 +520,10 @@ The SI's *Alternative specifications of regression model for trustworthiness* (t
 `s3-alt-specs`) reports five plain-OLS specifications of the same dependent variable --- the
 change in investor trust between games (`Tru_diff`, the SI's "ΔTrust") --- on different
 summaries of what the trustee revealed. These are the straight-line
-companions to the continuous NetRev smooth above. The two that carry the headline signalling result at *p* < .05
+companions to the continuous NetRev smooth above. The two that carry the headline signaling result at *p* < .05
 are column (4), trust on the **net** balance revealed (`NetRev` = sacred − non-sacred), and
 column (5), the same with `Greed` partialled out. The originally planned `SacRev`-only model is
-column (1) --- the weak specification the SI flags and moves away from. All five are
+column (1) --- the weakest specification, as the SI notes. All five are
 run on the trustee frame (`role_a_b == 2`), faithful to the archived `regress Tru_diff ... if
 role_a_b == 2`.
 
@@ -583,7 +582,7 @@ kable(t7_audit, align = "lrrl")
 **Reading the result.** All five columns reproduce to the published digits. The two `NetRev`
 specifications --- (4) `NetRev` alone (*b* = .0085, *p* = .011) and (5) `NetRev` + `Greed`
 (*b* = .0077, *p* = .027) --- are both significant at *p* < .05, and `Greed` is far from
-significant (*p* = .39), so partialling it out leaves the signalling effect intact. The
+significant (*p* = .39), so partialling it out leaves the signaling effect intact. The
 preregistered `SacRev`-only model (1) is the weak one (*p* = .068); switching to the *balance*
 revealed is what delivers significance and roughly doubles *R*² (.028 → .054).
 
@@ -594,8 +593,8 @@ DV = trustworthiness (`Wor_agg_avg`, proportion returned averaged across games);
 straight line, so the GAM and the linear percentage-point coefficient tell the same story.
 
 ```{r gam-worthy}
-winner <- "SacPers"                       # trustworthiness predictor, by project decision
-fw <- function(rhs) as.formula(sprintf("Wor_agg_avg ~ s(%s, k = 3)%s", winner, rhs))
+worthy_pred <- "SacPers"                  # trustworthiness predictor (values held; Figure 2)
+fw <- function(rhs) as.formula(sprintf("Wor_agg_avg ~ s(%s, k = 3)%s", worthy_pred, rhs))
 g5_m1 <- gam(fw(""),                       data = trustees, method = "REML")
 
 t5 <- data.frame(Model = "1: smooth only (= Figure 2)", as.data.frame(gam_smooth(g5_m1)))
@@ -614,7 +613,7 @@ par(mfrow = c(1, 2))
 plot(g4_m1, shade = TRUE, shade.col = "#1a73e833", col = "#1a73e8",
      seWithMean = TRUE, main = "Continuous NetRev fit: investor trust", xlab = "NetRev")
 plot(g5_m1, shade = TRUE, shade.col = "#1a73e833", col = "#1a73e8",
-     seWithMean = TRUE, main = "Trustworthiness GAM", xlab = winner)
+     seWithMean = TRUE, main = "Trustworthiness GAM", xlab = worthy_pred)
 par(mfrow = c(1, 1))
 
 cat(sprintf("Smooth edf -- NetRev fit: %.2f; trustworthiness: %.2f.\n",
@@ -630,7 +629,7 @@ fitted GAMs (predicted outcome change for a one-SD shift, covariates at their me
 
 ```{r gam-B}
 b4_m1 <- gam_oneSD(g4_m1, "NetRev")
-b5_m1 <- gam_oneSD(g5_m1, winner)
+b5_m1 <- gam_oneSD(g5_m1, worthy_pred)
 b_tab <- tibble(
   Quantity = c("Continuous NetRev fit one-SD B", "Trustworthiness M1 one-SD B (SacPers)"),
   Computed = c(b4_m1, b5_m1),
@@ -694,7 +693,7 @@ means <- read_dta(file.path(S3_DIR, "combined-ult-trust-means.dta"))  # per-stat
 After the second trust game but before learning either outcome, participants reported whether
 they expected their second-game partner to be more or less trusting / trustworthy than their
 first-game partner. The SI correlates these beliefs against the balance of sacred versus
-non-sacred values revealed and finds the same pattern as the incentivized behaviour:
+non-sacred values revealed and finds the same pattern as the incentivized behavior:
 
 - **Belief the partner will trust more** (`blf_trustee_trust`, held by the trustee who did the
   revealing) against the trustee's own net values revealed (`NetRev`): the strong correlation
@@ -718,9 +717,9 @@ cat(sprintf("s3-scatter-trustworthiness belief 'partner worthier'  ~ partner Net
 The SI reports that participants holding more sacred values are less inclined to revise their
 inventory answers. The archived item `survey1playerexp_ques1` ("would give identical answers in
 future") runs in the *opposite* direction to "willingness to revise", so a **positive**
-correlation with sacred values held (`SacPers`) is the SI's finding: more sacred values, more
-likely to stand pat. Defined for all trust-game participants (one is missing the item, so
-n = 241).
+correlation with sacred values held (`SacPers`) is the SI's finding: participants holding
+more sacred values are more likely to report that they would give identical answers.
+Defined for all trust-game participants (one is missing the item, so n = 241).
 
 ```{r si-revision}
 revision <- pearson_report(as.numeric(full$survey1playerexp_ques1), full$SacPers)
@@ -828,15 +827,15 @@ means (`s3-religiosity`); the *z*-test is on the number of sacred values by the
 religion-is-sacred split, over all 242 trust-game participants.
 
 ```{r si-religiosity}
-# The SI's game-1 trustworthiness figure comes from a bare `Wor_pre` in the archived Stata
-# (`hypothesis 1 - other results.do`), which is never generated anywhere in the current
-# pipeline -- a dangling reference to a pre-reconstruction variable. It is NOT the same
-# construct as `Wor_pre_avg` (the strategy-method mean across all four hypothetical investment
-# levels, generated in `import data.do` and used deliberately as the main-analysis outcome; see
-# `Study 3 Variable Key.docx`). `Wor_pre` is the trustee's strategy-method response at the ONE
-# investment level (`Tru_pre`) the paired investor actually chose -- the realized outcome of the
-# game as played, undefined when the investor invested 0 (22 dyads). Reconstructed here from
-# `t1_response_1..4` indexed by `Tru_pre`; reproduces the SI exactly (see flag below).
+# The SI's game-1 trustworthiness figure uses `Wor_pre` (per the archived
+# `hypothesis 1 - other results.do`): the trustee's strategy-method response at the one
+# investment level (`Tru_pre`) the paired investor actually chose -- the realized outcome
+# of the game as played, undefined when the investor invested 0 (22 dyads). This is a
+# different construct from `Wor_pre_avg`, the strategy-method mean across all four
+# hypothetical investment levels, generated in `import data.do` and used as the
+# main-analysis outcome (see `Study 3 Variable Key.docx`). `Wor_pre` is not generated by
+# the archived processing scripts, so it is reconstructed here from `t1_response_1..4`
+# indexed by `Tru_pre`; the reconstruction reproduces the SI table exactly.
 stakes    <- c(3, 6, 9, 12)
 resp_mat  <- as.matrix(tc[paste0("t1_response_", 1:4)])
 wor_pre   <- rep(NA_real_, nrow(tc))
@@ -849,8 +848,9 @@ tc$Wor_pre <- wor_pre
 relig_desc <- function(gvar) {
   # SacPers is a personal attribute, asked of all 242 participants -- no role restriction.
   # Wor_pre/Tru_post are trustee-side outcomes (dyad-level values live on the trustee's row);
-  # the archived Stata code restricts these to `if role_a_b == 2` and so do we, or the
-  # investor's own religiosity (not the trustee's) leaks into the group means.
+  # the archived Stata code restricts these to `if role_a_b == 2`, and so does this table:
+  # religiosity is a personal attribute that differs between partners, so the restriction
+  # conditions each trustee-outcome group mean on the trustee's own religiosity.
   g   <- droplevels(as_factor(tc[[gvar]]))
   tct <- tc[tc$role_a_b == 2, ]
   gt  <- droplevels(as_factor(tct[[gvar]]))
@@ -877,22 +877,17 @@ cat(sprintf("Sacred values ~ religion-is-sacred: Mann-Whitney |z| = %.3f, means 
             mean(tc$SacPers[tc$religious_sacred == 0], na.rm = TRUE)))
 ```
 
-> **Descriptive flag -- resolved.** All three rows and the *N* column now reproduce the SI table
-> exactly. Two separate issues had compounded: (1) trustworthiness and trust received were
-> computed over all 242 participants rather than the 121 trustees (`role_a_b == 2`, matching the
-> archived Stata's `if role_a_b == 2`); since those outcomes are dyad-level values duplicated onto
-> both partners' rows while religiosity is a personal attribute that differs between partners,
-> pooling both roles let the *investor's* own religiosity leak into the trustee-outcome group
-> means. (2) Trustworthiness in game 1 was read off `Wor_pre_avg` -- the strategy-method mean
-> across all four hypothetical investment levels, and the deliberate main-analysis outcome (see
-> `Study 3 Variable Key.docx`) -- but the SI's descriptive table used a different, un-averaged
-> `Wor_pre`: the trustee's response at the one investment level the paired investor actually chose.
-> That variable is a dangling reference in the current Stata pipeline (never generated in
-> `import data.do`) but is fully reconstructable from `t1_response_1..4` indexed by `Tru_pre`, and
-> doing so above closes the last ~.03 residual. Both are legitimate, different constructs -- the
-> realized outcome of the game as played versus the hypothetical strategy-method average used for
-> the sacred-values analysis -- not a bug in either; nothing about `Wor_agg_avg` or the main-text
-> pipeline is affected.
+> **Note on the game-1 trustworthiness measure.** The SI descriptive table reports game-1
+> trustworthiness as the *realized* return -- the trustee's strategy-method response at the one
+> investment level the paired investor actually chose (`Wor_pre`) -- rather than the
+> strategy-method average across all four investment levels (`Wor_pre_avg`) used as the
+> main-analysis outcome. The two are legitimate, distinct constructs. `Wor_pre` is not
+> generated by the archived processing scripts, so it is reconstructed above from the archived
+> response variables (`t1_response_1..4` indexed by `Tru_pre`). Trustworthiness and trust
+> received are trustee-side outcomes and are computed over the 121 trustee rows
+> (`role_a_b == 2`), matching the archived Stata; sacred values held is a personal attribute
+> computed over all 242 participants. Under these definitions all three rows and the *N*
+> column reproduce the SI table exactly.
 
 ## SI audit: computed vs SI
 
@@ -944,17 +939,15 @@ if (n_differ > 0) {
 
 # Preregistered specifications (OSF Stata port)
 
-> **Status: preregistered provenance.** This section ports the *preregistered* Stata
-> specifications from the OSF archive --- the H1 returns-on-sacred-values OLS
-> (`hypothesis 1 code.do`) and the H2 similarity-controlled OLS (`hypothesis 2 code.do`). The
-> paper departs from the H2 investor specification (it reports the categorical test and, in the
-> SI, the net-balance and preregistered-count models instead), so these mostly document what
-> was preregistered. One exception: the SI design history and the main text cite the H2
-> port's SacRev *p*-value (*p* = .2154, rounded to .22 in the main text) alongside the
-> unadjusted count-model *p* = .068, so that quantity carries an audit row below. The other two preregistered tests --- the
-> religiosity rank-sums and the H3 mixed logit --- *are* reported in the SI and appear as audited
-> results in the SI section above, not here. Included for transparency / reproducibility of the
-> OSF code.
+> This appendix ports the *preregistered* Stata specifications from the OSF archive --- the
+> H1 returns-on-sacred-values OLS (`hypothesis 1 code.do`) and the H2 similarity-controlled
+> OLS (`hypothesis 2 code.do`). The paper reports the categorical test as its primary investor
+> result and, in the SI, the net-balance and preregistered-count models, so these ports
+> chiefly document the preregistered specifications. One exception: the SI and the main text
+> cite the H2 port's SacRev *p*-value (*p* = .2154, rounded to .22 in the main text) alongside
+> the unadjusted count-model *p* = .068, so that quantity carries an audit row below. The
+> other two preregistered tests --- the religiosity rank-sums and the H3 mixed logit --- are
+> reported in the SI and audited in the SI section above.
 
 ```{r appendix-load}
 tc_tru <- tc %>% filter(role_a_b == 2)   # `tc` was loaded in the SI section above
@@ -979,15 +972,15 @@ h1_tab <- do.call(rbind, lapply(names(h1), function(nm) {
 kable(h1_tab, digits = 3, caption = "H1: trustee returns regressed on sacred-value endorsement.")
 ```
 
-> **The religiosity rank-sum tests are now an audited SI result** --- see *Religiosity, trust
-> and trustworthiness* (`s3-religiosity`) above, which reproduces the SI table and the one
-> significant test (Mann--Whitney *z* = 6.895). Not duplicated here.
+> **The preregistered religiosity rank-sum tests are reported in the SI** --- see *Religiosity,
+> trust and trustworthiness* (`s3-religiosity`) above, which reproduces the SI table and the
+> one significant test (Mann--Whitney *z* = 6.895). They are not duplicated here.
 
 ## H2 --- preregistered test (OLS with revealed similarity)
 
 Ports the preregistered test `regress Tru_diff SacRev Greed wtd_rev_sim_factor*; test SacRev`.
 The revealed-similarity factors (`wsim1/2/3`) were constructed once in the prep section above
-(min-max normalised factor scores, NumRev-weighted, dyad-matched) and are reused here, so the
+(min-max normalized factor scores, NumRev-weighted, dyad-matched) and are reused here, so the
 OLS port and the controlled GAMs share a single construction.
 
 ```{r h2}
@@ -1006,9 +999,9 @@ kable(h2_p_audit, align = "lrrl")
 stopifnot("H2 preregistered SacRev p does not reproduce" = all(h2_p_audit$Check == "match"))
 ```
 
-> **The mixed-logit revelation test (former H3) is now an audited SI result** --- see
-> *Did trustees reveal sacred values preferentially?* (`s3-mixed-logit`) above --- because the
-> paper reports it in the SI. It is no longer duplicated here.
+> **The preregistered mixed-logit revelation test (H3) is reported in the SI** --- see
+> *Did trustees reveal sacred values preferentially?* (`s3-mixed-logit`) above. It is not
+> duplicated here.
 
 ---
 

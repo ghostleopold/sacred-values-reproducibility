@@ -1,8 +1,7 @@
 ---
-title: "Sacred Values Signal Trustworthiness --- Reproducibility Pipeline (Studies 4 & 5)"
-subtitle: "Push-button reproduction of the parallel-mediation tests for the two-stage mechanism"
-author: "Sacred Values project"
-date: "Knitted `r format(Sys.Date(), '%d %B %Y')`"
+title: "Sacred values as index signals of trustworthy character --- Reproducibility Pipeline (Studies 4 & 5)"
+subtitle: "Reproduction of the between-condition effects and parallel-mediation tests for Studies 4 and 5, in the main text and the Supporting Information"
+date: "August 2026"
 output:
   html_document:
     theme: flatly
@@ -50,16 +49,17 @@ foundations as **parallel competing mediators** in a single structural model, wi
 **5,000 bootstrap resamples** and **percentile** 95% confidence intervals. We fit this
 with `lavaan`, mirroring the original analysis.
 
-> **Runtime.** Four bootstrap models (two studies × two outcomes), 5,000 resamples each,
-> take roughly **8--10 minutes** on first knit. Results are **cached**
-> (`_rmd_cache/studies-4-5/`), so subsequent knits are near-instant. To force a clean
-> re-run, delete that folder. To dry-run quickly, lower `N_BOOT` *and* clear the cache.
+> **Computational notes.** Four bootstrap models (two studies × two outcomes), 5,000
+> resamples each, take roughly 8--10 minutes on the first knit. Results are cached
+> (`_rmd_cache/studies-4-5/`); subsequent knits reuse the cache. To force a complete
+> re-run, delete that folder. To reduce runtime for a test run, lower `N_BOOT` *and*
+> clear the cache.
 
-> **A note on the `lavaan` variance warning.** The mediators (perceived sacralization,
-> ~0--1) and the outcomes (0--100 ratings) live on very different scales, so `lavaan`
-> prints a "variances ... a factor 1000 times larger" note. This is cosmetic --- it
-> reflects the original measurement scales and does not affect the estimates --- so we
-> suppress it inside the fitting function.
+> **The `lavaan` variance warning.** The mediators (perceived sacralization, ~0--1) and
+> the outcomes (0--100 ratings) are measured on very different scales, so `lavaan`
+> prints a "variances ... a factor 1000 times larger" note. This reflects the original
+> measurement scales and does not affect the estimates; the warning is therefore
+> suppressed inside the fitting function.
 
 ---
 
@@ -172,8 +172,9 @@ basic_contrast <- function(data, iv, dv, label) {
 # Beyond the five indirect effects we also declare the TOTAL effect
 # (c' + sum a*b) and each foundation's indirect effect as a *share of the total
 # effect* (prop%d) plus the overall proportion mediated. lavaan bootstraps these
-# defined parameters automatically, so their percentile CIs come for free and
-# the anchoring numbers the manuscript reports are themselves reproduced here.
+# defined parameters automatically, so their percentile CIs come from the same
+# resampling pass and the anchoring numbers the manuscript reports are themselves
+# reproduced here.
 parallel_med_syntax <- function(dv, iv, mediators) {
   k         <- seq_along(mediators)
   b_terms   <- paste(sprintf("b%d*%s", k, mediators), collapse = " + ")
@@ -478,7 +479,7 @@ s4_tr_r    <- s4_basic$r[s4_basic$Outcome == "Trustworthiness"]
 s4_ind <- tidy_indirect(s4_trust)
 s4_te  <- get_total_effect(s4_trust)
 s4_audit <- dplyr::bind_rows(
-  audit_row("N (analysed)",                nrow(s4),     289, 0.1, 0),
+  audit_row("N (analyzed)",                nrow(s4),     289, 0.1, 0),
   audit_row("Trust r (= Z/sqrt(N))",       s4_tr_r,     0.59, 0.02, 2),
   audit_row("Trust CLES",                  s4_tr_cles,  0.84, 0.01, 2),
   audit_row("Total effect on trust (pts)", s4_te$total, 28.6, 0.3, 1),
@@ -507,7 +508,7 @@ exactly what Study 5 addresses.
 ## SI: intercorrelations (`tbl:s4-intercorr`)
 
 Zero-order Pearson correlations among trustworthiness, social acceptance (the affiliation
-composite -- labelled "social acceptance" rather than "social desirability", as it is not the
+composite -- labeled "social acceptance" rather than "social desirability", as it is not the
 response-bias construct), and the five
 perceived-sacralization proportions, with the group means and SDs the SI reports.
 
@@ -622,8 +623,8 @@ s5_meds <- c(Harm = "Never_Harm", Fairness = "Never_Fair", Authority = "Never_Au
              Loyalty = "Never_InGrp", Purity = "Never_Pure")
 s5_vars <- c("Cond_01", "Trust_Att", "Int_Rel", unname(s5_meds))
 
-# Proper exclusion: dplyr::filter drops the NA-exclusion row (the old base-R
-# `d[d$Exclusion==0, ]` kept a phantom all-NA row, inflating N to 289).
+# Apply the exclusion criterion with filter(), which also drops rows with a
+# missing exclusion flag; the resulting analytic sample is N = 288.
 s5 <- read_sav(s5_file) %>% filter(Exclusion == 0)
 for (v in s5_vars) s5[[v]] <- as.numeric(s5[[v]])
 
@@ -702,7 +703,7 @@ s5_tr_r    <- s5_basic$r[s5_basic$Outcome == "Trustworthiness"]
 s5_ind <- tidy_indirect(s5_trust)
 s5_te  <- get_total_effect(s5_trust)
 s5_audit <- dplyr::bind_rows(
-  audit_row("N (analysed)",            nrow(s5),    288, 0.1, 0),
+  audit_row("N (analyzed)",            nrow(s5),    288, 0.1, 0),
   audit_row("Trust r (= Z/sqrt(N))",   s5_tr_r,    0.37, 0.02, 2),
   audit_row("Trust CLES",              s5_tr_cles, 0.71, 0.01, 2),
   audit_row("Total effect on trust (pts)", s5_te$total, 12.1, 0.3, 1),
@@ -944,8 +945,8 @@ of which one happens to absorb the common variance. We therefore corroborate the
 ranking with two order-independent, suppression-free decompositions of the model $R^2$ ---
 Johnson's (2000) **relative weights** and Budescu's (1993) **general dominance** --- and report
 **VIFs** to quantify the collinearity directly. A sign flip between the zero-order `r_trust`
-and the partial `beta_partial` is the suppression tell behind the negative indirect effects;
-a VIF above ~5 would signal disabling collinearity.
+and the partial `beta_partial` indicates suppression, which underlies the negative indirect
+effects; a VIF above ~5 would signal disabling collinearity.
 
 ```{r discriminant}
 source(file.path(find_data_root(marker = "scripts"), "scripts", "R", "collinearity_helpers.R"))
@@ -964,7 +965,7 @@ kable(s5_rw, caption = sprintf(
 ```
 
 Under these order-independent decompositions Study 4 does **not** rank Harm first (Fairness
-edges it and every bootstrap CI overlaps): a single between-subjects scenario cannot separate
+ranks marginally higher, and every bootstrap CI overlaps): a single between-subjects scenario cannot separate
 the near-collinear foundations. Study 5 puts Harm first (~39% of $R^2$), consistent with the
 b-path story, though its CI is wide. All VIFs sit below 5, so the collinearity is moderate,
 not disabling.
@@ -993,8 +994,9 @@ if (n_differ > 0) {
 ```
 
 **Reading the result.** The competing-mediator point estimates reproduce the manuscript to
-two decimals (Study 4: Harm 4.46, Fairness 4.34; Study 5: Harm 1.24); the bootstrap CIs
-sit within noise of the published intervals. The qualitative pattern --- full halo with a
+two decimals (Study 4: Harm 4.46, Fairness 4.34; Study 5: Harm 1.24); the bootstrap
+confidence intervals agree with the published intervals to within resampling variation.
+The qualitative pattern --- full halo with a
 Harm--Fairness route in Study 4, partial halo with a Harm-only route in Study 5 ---
 reproduces exactly.
 

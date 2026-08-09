@@ -1,8 +1,7 @@
 ---
-title: "Sacred Values Signal Trustworthiness --- Reproducibility Pipeline (Study 6)"
-subtitle: "Within-subjects test: a broad halo in, a narrow harm door out"
-author: "Sacred Values project"
-date: "Knitted `r format(Sys.Date(), '%d %B %Y')`"
+title: "Sacred values as index signals of trustworthy character --- Reproducibility Pipeline (Study 6)"
+subtitle: "Reproduction of the within-subjects test across the five moral foundations, in the main text and the Supporting Information"
+date: "August 2026"
 output:
   html_document:
     theme: flatly
@@ -29,10 +28,11 @@ paper reports: the **main effect** of sacred condition on trustworthiness, the *
 (the sacred display raising perceived sacralization on every foundation), and the
 **multilevel parallel mediation** showing perceived Harm to be the dominant route to trust.
 
-> **Runtime.** The multilevel mediation uses a clustered bootstrap (5,000 resamples on 4,860
-> rows) and takes ~3 minutes; it is **cached** (`_rmd_cache/study-6/`), so re-knits are
-> instant. The `lavaan` "variance ratio" note (mediators on a 0--1 scale, trust on 0--100)
-> is benign and suppressed inside the fitting function.
+> **Computational notes.** The multilevel mediation uses a clustered bootstrap (5,000
+> resamples on 4,860 rows) and takes ~3 minutes; results are cached (`_rmd_cache/study-6/`),
+> so subsequent knits reuse the cache. The `lavaan` "variance ratio" note (mediators on a
+> 0--1 scale, trust on 0--100) reflects the measurement scales, does not affect the
+> estimates, and is suppressed inside the fitting function.
 
 ---
 
@@ -101,7 +101,7 @@ S6_MEDS <- c(Harm = "Harm_Sacred_Prop", Fairness = "Fair_Sacred_Prop",
 # Alongside the five indirect effects we declare the TOTAL effect (c' + sum a*b),
 # each foundation's share of that total effect (prop%d), and the overall
 # proportion mediated -- so the manuscript's "X% of the trust effect" anchoring
-# is bootstrapped here rather than computed by hand.
+# is bootstrapped here rather than computed post hoc.
 ml_med_syntax <- function(dv, iv, mediators) {
   k <- seq_along(mediators)
   paste(
@@ -194,18 +194,18 @@ audit_row <- function(quantity, computed, claimed, tol, digits = 2) {
 ```{r prep}
 d <- read_sav(s6_file)
 
-# Pre-registered exclusions: keep Exclusions == 0.
+# Preregistered exclusions: keep Exclusions == 0.
 ad <- d %>% filter(Exclusions == 0)
 ad$FoundationVignette <- factor(as_factor(ad$FoundationVignette))
 for (v in c("Trustworthiness", "SV_Condition", unname(S6_MEDS))) ad[[v]] <- as.numeric(ad[[v]])
 ad$Participant_ID <- as.factor(ad$Participant_ID)
 
-# Foundation-block labels. FoundationVignette is coded 1-5 with NO value labels in the .sav
-# (and the archived author R code never names the levels either). The mapping
-# 1=Harm, 2=Fairness, 3=Authority, 4=Loyalty, 5=Purity is NOT guessed: it is recovered
-# structurally from the per-participant assignment columns and asserted in the next section
-# (see "Data structure"). It is also consistent with each block's between-condition trust Z
-# (Harm 24.22, Fairness 20.75, Authority 20.83, Loyalty 21.62, Purity 20.72 --- all exact).
+# Foundation-block labels. FoundationVignette is coded 1-5 with no value labels in
+# the .sav. The mapping 1=Harm, 2=Fairness, 3=Authority, 4=Loyalty, 5=Purity is
+# recovered structurally from the per-participant assignment columns and asserted in
+# the next section (see "Data structure"). It is also consistent with each block's
+# between-condition trust Z (Harm 24.22, Fairness 20.75, Authority 20.83,
+# Loyalty 21.62, Purity 20.72 --- all exact).
 ad$FVcode <- as.numeric(as.character(ad$FoundationVignette))
 ad$Block  <- factor(ad$FVcode, levels = 1:5,
                     labels = c("Harm", "Fairness", "Authority", "Loyalty", "Purity"))
@@ -220,28 +220,28 @@ table(SV_Condition = ad$SV_Condition)
 
 # Data structure: what `FoundationVignette` encodes
 
-**Read this before trusting any per-foundation number.** Study 6 is within-subjects: every
-participant contributes **five rows** to the long dataset, one per moral foundation.
+Study 6 is within-subjects: every participant contributes **five rows** to the long
+dataset, one per moral foundation. The structure of these rows governs every
+per-foundation analysis below.
 
 - `FoundationVignette` (1--5) identifies **which foundation** a row's vignette targeted.
 - `SV_Condition` (0/1) is whether that vignette was the **non-sacred** or **sacred** version.
-- The randomisation is **within foundation**: each participant is independently assigned to
+- The randomization is **within foundation**: each participant is independently assigned to
   sacred or non-sacred on each of the five foundations. `condition_string` (e.g. `"CTCCT"`)
   records one participant's five-way treatment pattern.
 
 So `FoundationVignette` is a **fixed foundation identity, not a presentation-order slot** ---
 block 1 is the Harm vignette for *every* participant. (Presentation order was separately
-randomised but is not recoverable from the archived data; see the deferred first-block section.)
+randomized and is not carried in the long dataset; see the first-block section below.)
 
 **The block $\rightarrow$ foundation mapping is stored implicitly, but is fully recoverable.**
-The `.sav` gives `FoundationVignette` no value labels, and the author's archived R code simply
-`factor()`s the bare integer without naming it. The identity of each block is nonetheless
-pinned down by the per-participant assignment columns `Harm`, `Fairness`, `Loyalty`,
-`Authority`, `Purity`, each valued `"<X>_SV"` / `"<X>_NSV"`. Within a given block, the row's
-`SV_Condition` must equal that foundation's assignment. Decoding those columns to 1/0 and
-checking agreement with `SV_Condition`, **each block matches exactly one foundation at
-agreement = 1.000** (all others ~0.40). The chunk below performs that check and `stopifnot()`s
-the labels used above, so any future mislabelling fails the knit loudly rather than silently.
+The `.sav` gives `FoundationVignette` no value labels. The identity of each block is
+nonetheless pinned down by the per-participant assignment columns `Harm`, `Fairness`,
+`Loyalty`, `Authority`, `Purity`, each valued `"<X>_SV"` / `"<X>_NSV"`. Within a given block,
+the row's `SV_Condition` must equal that foundation's assignment. Decoding those columns to
+1/0 and checking agreement with `SV_Condition`, **each block matches exactly one foundation
+at agreement = 1.000** (all others ~0.40). The chunk below performs that check and asserts
+the labels used above (`stopifnot()`), so a mislabeling would halt execution.
 
 ```{r verify-mapping}
 # Structural verification of the block -> foundation mapping (see prose above).
@@ -375,7 +375,7 @@ kable(tidy_decomp(s6_med, ad),
       caption = "Study 6 decomposition (SI): mediator M (SD) on the 0-1 scale, a-path, b-path, indirect effect, its share of the total effect, and the standardized indirect effect.")
 ```
 
-## Standardized paths (Fig. 4 betas: broad halo in, narrow door out)
+## Standardized paths (Fig. 4 betas)
 
 ```{r mediation-std}
 kable(tidy_paths_std(s6_med),
@@ -404,7 +404,7 @@ s6_rw <- collinearity_table(as.data.frame(ad), "Trustworthiness",
                             unname(S6_MEDS), names(S6_MEDS),
                             cluster = "Participant_ID", seed = 2024L)
 kable(s6_rw, caption = sprintf(
-  "Study 6: relative importance of the five foundations for trust ($R^2$ = %.3f), cluster-bootstrapped on participant. RW_pct = Johnson relative weight (%% of $R^2$); Dominance_pct = general dominance (%% of $R^2$); RW_lo/hi = bootstrap 95%% CI on the relative-weight share. A sign flip between r_trust and beta_partial is a suppression tell.",
+  "Study 6: relative importance of the five foundations for trust ($R^2$ = %.3f), cluster-bootstrapped on participant. RW_pct = Johnson relative weight (%% of $R^2$); Dominance_pct = general dominance (%% of $R^2$); RW_lo/hi = bootstrap 95%% CI on the relative-weight share. A sign flip between r_trust and beta_partial indicates suppression.",
   attr(s6_rw, "R2")))
 ```
 
@@ -698,10 +698,11 @@ foundation**. Every one of the 1,013 rows is a clean permutation of {1,2,3,4,5} 
 all 120 orderings occur, and `Participant_ID` joins one-to-one to the long data. The first block
 is the foundation with rank 1; the whole sequence is recovered as a by-product.
 
-Two of the authors' pre-computed wide columns are **not** used here: `FirstBlockGroup` (drops the
-191 Fairness-first participants to `NA`) and `Trust_FirstBlock` (only ~74% consistent with the
-true first block). The first-block subset is rebuilt from scratch off the rank columns, covering
-**all 972 included participants**.
+Two precomputed wide columns are **not** used here: `FirstBlockGroup`, which is incomplete
+(the 191 Fairness-first participants are coded `NA`), and `Trust_FirstBlock`, which is only
+~74% consistent with the presentation order recovered from the rank columns. Because these
+fields are incomplete and inconsistent, the first-block subset is instead reconstructed from
+the rank columns, covering **all 972 included participants**.
 
 ```{r fb-recover}
 # Recover presentation order from the WIDE dataset's per-foundation rank columns.
@@ -827,7 +828,7 @@ cat(sprintf("First block: Harm indirect = %.2f [%.2f, %.2f]; mediating foundatio
             paste(fb_ind$Foundation[fb_ind$Mediates == "yes"], collapse = ", ")))
 ```
 
-The first-block-only analysis reproduces the paper's story on a clean between-subjects footing and
+The first-block-only analysis reproduces the paper's central result on a between-subjects footing and
 the full N = 972: a large condition effect on trust, a broad halo across all five foundations, and
 a mediation dominated by perceived sacralization of the Harm foundation.
 

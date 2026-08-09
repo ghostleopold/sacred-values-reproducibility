@@ -9,7 +9,6 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Sacred Values project" />
 
 
 <title>Sacred values as index signals of trustworthy character — Reproducibility Pipeline (Studies 1 &amp; 2)</title>
@@ -1674,11 +1673,9 @@ font-size: 0.95em;
 <h1 class="title toc-ignore">Sacred values as index signals of
 trustworthy character — Reproducibility Pipeline (Studies 1 &amp;
 2)</h1>
-<h3 class="subtitle">Push-button reproduction of every statistical test
-reported for Studies 1 and 2, in both the main text and the Supporting
-Information</h3>
-<h4 class="author">Sacred Values project</h4>
-<h4 class="date">Knitted 09 August 2026</h4>
+<h3 class="subtitle">Reproduction of every statistical test reported for
+Studies 1 and 2, in the main text and the Supporting Information</h3>
+<h4 class="date">August 2026</h4>
 
 </div>
 
@@ -1729,13 +1726,13 @@ absolute paths, no <code>setwd()</code>.</td>
 <tr class="even">
 <td>Data structure matches code</td>
 <td>Sample sizes are <strong>asserted</strong> (<code>stopifnot</code>)
-against the paper’s reported <em>N</em>; the knit fails loudly if the
-data drifted.</td>
+against the paper’s reported <em>N</em>; execution terminates if the
+expected sample size is not recovered.</td>
 </tr>
 <tr class="odd">
 <td>Key results declared in advance</td>
 <td>Reported values are written into a target table <em>before</em> the
-data are analysed, then compared automatically.</td>
+data are analyzed, then compared automatically.</td>
 </tr>
 <tr class="even">
 <td>Documented software environment</td>
@@ -1771,7 +1768,7 @@ data location</h2>
 <p>The data live in a <code>data/</code> folder (a copy of the OSF
 archive at <a href="https://osf.io/ju9rq/" class="uri">https://osf.io/ju9rq/</a>). Rather than hard-code a path, we
 locate that folder by walking up from wherever this file is knitted. To
-run against data stored elsewhere, set <code>DATA_DIR</code> by hand in
+run against data stored elsewhere, set <code>DATA_DIR</code> manually in
 the chunk below.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Walk up the directory tree until we find a folder containing `marker`.</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>find_data_root <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">start =</span> <span class="fu">getwd</span>(), <span class="at">marker =</span> <span class="st">&quot;data&quot;</span>) {</span>
@@ -1818,9 +1815,8 @@ the chunk below.</p>
 <div id="statistical-helper-functions" class="section level2 tabset" number="2.2">
 <h2 class="tabset"><span class="header-section-number">2.2</span>
 Statistical helper functions</h2>
-<p>These functions do all the statistical work. (Click the
-<strong>Code</strong> toggle to collapse them.)</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Mean of a set of items, coercing SPSS labelled columns to plain numeric -----</span></span>
+<p>These functions do all the statistical work.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Mean of a set of items, coercing SPSS labeled columns to plain numeric ------</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>composite <span class="ot">&lt;-</span> <span class="cf">function</span>(df, items) {</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="fu">rowMeans</span>(<span class="fu">sapply</span>(items, <span class="cf">function</span>(v) <span class="fu">as.numeric</span>(df[[v]])), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>}</span>
@@ -1997,7 +1993,7 @@ a wedding ring bought for $2,000. U.S. representative sample. Reported
 build measures</h2>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>s1 <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(s1_file)</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co"># Pre-registered exclusions: keep Exclusion == 0 (&quot;Good&quot;).</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co"># Preregistered exclusions: keep Exclusion == 0 (&quot;Good&quot;).</span></span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>s1a <span class="ot">&lt;-</span> s1 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Exclusion <span class="sc">==</span> <span class="dv">0</span>)</span>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a></span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co"># Condition: string &quot;Sell&quot; / &quot;Sacred&quot; -&gt; x = 1 for the sacred (refuser) target.</span></span>
@@ -2019,10 +2015,10 @@ build measures</h2>
 <span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>s1a<span class="sc">$</span>joint   <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(s1a<span class="sc">$</span>Joint_D)</span>
 <span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>s1a<span class="sc">$</span>psv     <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(s1a<span class="sc">$</span>P_SV)</span>
 <span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a></span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co"># Push-button check: the data must have the N the paper claims.</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co"># Verify the analytic sample matches the reported N.</span></span>
 <span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="st">&quot;Study 1 N after exclusions != 281&quot;</span> <span class="ot">=</span> <span class="fu">nrow</span>(s1a) <span class="sc">==</span> <span class="dv">281</span><span class="dt">L</span>)</span>
 <span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a></span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co"># And our hand-built composites must equal the pre-baked OSF columns.</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co"># And our reconstructed composites must equal the precomputed OSF columns.</span></span>
 <span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="fu">stopifnot</span>(</span>
 <span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>  <span class="fu">max</span>(<span class="fu">abs</span>(s1a<span class="sc">$</span>trust  <span class="sc">-</span> s1a<span class="sc">$</span>Trust_C),  <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">&lt;</span> <span class="fl">1e-6</span>,</span>
 <span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>  <span class="fu">max</span>(<span class="fu">abs</span>(s1a<span class="sc">$</span>accept <span class="sc">-</span> s1a<span class="sc">$</span>Rel_Comp), <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">&lt;</span> <span class="fl">1e-6</span></span>
@@ -2187,11 +2183,11 @@ analysis. All four key variables depart from normality.</p>
 </table>
 </div>
 </div>
-<div id="pre-registered-parametric-tests-si" class="section level2" number="3.7">
-<h2><span class="header-section-number">3.7</span> Pre-registered
+<div id="preregistered-parametric-tests-si" class="section level2" number="3.7">
+<h2><span class="header-section-number">3.7</span> Preregistered
 parametric tests — <em>SI</em></h2>
-<p>The SI reports the pre-registered <em>t</em>-tests (main analysis
-uses non-parametric tests because of the normality violations above).
+<p>The SI reports the preregistered <em>t</em>-tests (main analysis uses
+non-parametric tests because of the normality violations above).
 Composite trust and composite interpersonal relationships first, then
 trait by trait and relationship by relationship. Cohen’s <em>d</em> uses
 the pooled SD.</p>
@@ -2802,7 +2798,7 @@ Non-Muslim raters only — an out-group commitment. Reported <span class="math i
 build measures</h2>
 <div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" tabindex="-1"></a>s2 <span class="ot">&lt;-</span> <span class="fu">read_sav</span>(s2_file)</span>
 <span id="cb53-2"><a href="#cb53-2" tabindex="-1"></a></span>
-<span id="cb53-3"><a href="#cb53-3" tabindex="-1"></a><span class="co"># Pre-registered exclusions: keep Exclusions == 0 (&quot;Good&quot;).</span></span>
+<span id="cb53-3"><a href="#cb53-3" tabindex="-1"></a><span class="co"># Preregistered exclusions: keep Exclusions == 0 (&quot;Good&quot;).</span></span>
 <span id="cb53-4"><a href="#cb53-4" tabindex="-1"></a>s2a <span class="ot">&lt;-</span> s2 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Exclusions <span class="sc">==</span> <span class="dv">0</span>)</span>
 <span id="cb53-5"><a href="#cb53-5" tabindex="-1"></a></span>
 <span id="cb53-6"><a href="#cb53-6" tabindex="-1"></a><span class="co"># Condition: Cond_01  (0 = non-sacred, 1 = sacred) per OSF variable key.</span></span>
@@ -2959,8 +2955,8 @@ tests — <em>SI</em></h2>
 </table>
 </div>
 </div>
-<div id="pre-registered-parametric-tests-si-1" class="section level2" number="4.6">
-<h2><span class="header-section-number">4.6</span> Pre-registered
+<div id="preregistered-parametric-tests-si-1" class="section level2" number="4.6">
+<h2><span class="header-section-number">4.6</span> Preregistered
 parametric tests — <em>SI</em></h2>
 <div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" tabindex="-1"></a>s2_t_trust  <span class="ot">&lt;-</span> <span class="fu">welch_d</span>(s2a<span class="sc">$</span>trust,  s2a<span class="sc">$</span>x)</span>
 <span id="cb64-2"><a href="#cb64-2" tabindex="-1"></a>s2_t_accept <span class="ot">&lt;-</span> <span class="fu">welch_d</span>(s2a<span class="sc">$</span>accept, s2a<span class="sc">$</span>x)</span>
