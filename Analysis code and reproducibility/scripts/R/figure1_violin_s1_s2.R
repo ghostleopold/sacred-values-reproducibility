@@ -22,7 +22,7 @@ find_data_root <- function(start = getwd(), marker = "data") {
 }
 
 DATA_DIR <- file.path(find_data_root(), "data")
-OUT_DIR  <- file.path(find_data_root(), "Figures")
+OUT_DIR  <- file.path(find_data_root(marker = "scripts"), "Figures")
 
 composite <- function(df, items) {
   rowMeans(sapply(items, function(v) as.numeric(df[[v]])), na.rm = TRUE)

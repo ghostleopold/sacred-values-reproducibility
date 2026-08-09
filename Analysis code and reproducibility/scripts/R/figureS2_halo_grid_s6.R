@@ -16,7 +16,8 @@
 # figure's standardized a-path. 95% CIs are the Fisher-z intervals from cor.test.
 #
 # Output: Figures/figureS2_halo_grid_s6.pdf  (+.png at 300 dpi)
-# Run from project root:  Rscript scripts/R/figureS2_halo_grid_s6.R
+# Run from "Analysis code and reproducibility/":
+#   Rscript scripts/R/figureS2_halo_grid_s6.R
 # ------------------------------------------------------------------------------
 
 suppressPackageStartupMessages({
@@ -39,7 +40,7 @@ find_root <- function(start = getwd(), marker = "data") {
 }
 
 ROOT    <- find_root()
-OUT_DIR <- file.path(ROOT, "Figures")
+OUT_DIR <- file.path(find_root(marker = "scripts"), "Figures")
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
 # --- palette + foundation order (identical to the parent figure) ------------

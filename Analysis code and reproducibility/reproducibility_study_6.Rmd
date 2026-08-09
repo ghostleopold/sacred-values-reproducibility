@@ -383,7 +383,7 @@ Harm remains the single largest contributor with a bootstrap CI that
 does not overlap any other foundation.
 
 ```{r discriminant}
-source(file.path(find_data_root(), "scripts", "R", "collinearity_helpers.R"))
+source(file.path(find_data_root(marker = "scripts"), "scripts", "R", "collinearity_helpers.R"))
 
 s6_rw <- collinearity_table(as.data.frame(ad), "Trustworthiness",
                             unname(S6_MEDS), names(S6_MEDS),

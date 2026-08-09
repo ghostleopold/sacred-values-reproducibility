@@ -33,25 +33,27 @@ suppressPackageStartupMessages({
 })
 set.seed(20260619)
 
-## ---- locate data + repo (the 'data' symlink sits in the repo root) ----------
+## ---- locate data + code (data/ at the archive root, scripts/ beside the
+## notebooks one level in, so the two are found from different anchors) -------
 find_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
     if (identical(parent, d))
-      stop("Could not locate the 'data' directory from ", start, call. = FALSE)
+      stop("Could not locate the '", marker, "' directory from ", start, call. = FALSE)
     d <- parent
   }
 }
 REPO    <- find_root()
+CODE    <- find_root(marker = "scripts")
 S3_DIR  <- file.path(REPO, "data", "Study 3 - Lab Study",
                      "Replication Documentation", "Processing and Analysis", "Analysis Data")
 s3_file <- file.path(S3_DIR, "combined-ult-trust-withfactors.dta")
 stopifnot("Study 3 analysis .dta not found" = file.exists(s3_file))
 
-OUT_DIR <- file.path(REPO, "scripts", "R", "_outputs")
-FIG_DIR <- file.path(REPO, "Figures")
+OUT_DIR <- file.path(CODE, "scripts", "R", "_outputs")
+FIG_DIR <- file.path(CODE, "Figures")
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 out_png <- file.path(OUT_DIR, "study3_partials_figure.png")
 out_pdf <- file.path(FIG_DIR, "study3_trustgame_partials.pdf")

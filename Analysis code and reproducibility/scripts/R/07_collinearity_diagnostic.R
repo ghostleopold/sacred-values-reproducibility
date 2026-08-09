@@ -14,26 +14,30 @@
 #     participant for the within-subjects Study 6).
 #
 # Read-only: reads data/ .sav files, writes only to scripts/R/_outputs/.
-# Run from project root:  Rscript scripts/R/07_collinearity_diagnostic.R
+# Run from "Analysis code and reproducibility/":
+#   Rscript scripts/R/07_collinearity_diagnostic.R
 # ---------------------------------------------------------------------------
 
 suppressMessages({ library(haven) })
 
-# Locate project root (dir containing the `data` symlink), like the .Rmd pipelines.
+# Walk up for a directory containing `marker`, like the .Rmd pipelines. `data/`
+# sits at the archive root; `scripts/` sits beside the notebooks one level in,
+# so the two are found from different anchors.
 find_data_root <- function(start = getwd(), marker = "data") {
   d <- normalizePath(start, winslash = "/", mustWork = FALSE)
   repeat {
     if (dir.exists(file.path(d, marker))) return(d)
     parent <- dirname(d)
     if (identical(parent, d))
-      stop("Could not locate the 'data' directory from ", start, call. = FALSE)
+      stop("Could not locate the '", marker, "' directory from ", start, call. = FALSE)
     d <- parent
   }
 }
 ROOT <- find_data_root()
-source(file.path(ROOT, "scripts", "R", "collinearity_helpers.R"))
+CODE <- find_data_root(marker = "scripts")
+source(file.path(CODE, "scripts", "R", "collinearity_helpers.R"))
 
-OUT <- file.path(ROOT, "scripts", "R", "_outputs")
+OUT <- file.path(CODE, "scripts", "R", "_outputs")
 dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 sink(file.path(OUT, "collinearity_studies_4-6.txt"), split = TRUE)
 

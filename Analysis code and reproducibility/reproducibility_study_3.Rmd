@@ -16,7 +16,7 @@ output:
     highlight: tango
 ---
 
-<!-- Rscript -e 'rmarkdown::render("scripts/R/reproducibility_study_3.Rmd")' -->
+<!-- Rscript -e 'rmarkdown::render("reproducibility_study_3.Rmd")' -->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,

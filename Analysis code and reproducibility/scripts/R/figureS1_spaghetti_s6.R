@@ -8,7 +8,8 @@
 # sacred-value trust effect immediately legible.
 #
 # Output: Figures/figureS1_spaghetti_s6.pdf  (+.png at 300 dpi)
-# Run from project root:  Rscript scripts/R/figureS1_spaghetti_s6.R
+# Run from "Analysis code and reproducibility/":
+#   Rscript scripts/R/figureS1_spaghetti_s6.R
 # ------------------------------------------------------------------------------
 
 suppressPackageStartupMessages({
@@ -32,7 +33,7 @@ find_root <- function(start = getwd(), marker = "data") {
 }
 
 ROOT    <- find_root()
-OUT_DIR <- file.path(ROOT, "Figures")
+OUT_DIR <- file.path(find_root(marker = "scripts"), "Figures")
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
 # --- load Study 6 long data -------------------------------------------------

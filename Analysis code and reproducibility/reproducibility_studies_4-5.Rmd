@@ -972,7 +972,7 @@ and the partial `beta_partial` is the suppression tell behind the negative indir
 a VIF above ~5 would signal disabling collinearity.
 
 ```{r discriminant}
-source(file.path(find_data_root(), "scripts", "R", "collinearity_helpers.R"))
+source(file.path(find_data_root(marker = "scripts"), "scripts", "R", "collinearity_helpers.R"))
 
 s4_rw <- collinearity_table(as.data.frame(s4), "Trust_Att",
                             unname(s4_meds), names(s4_meds), seed = 2024L)
