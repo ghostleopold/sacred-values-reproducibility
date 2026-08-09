@@ -1676,7 +1676,7 @@ Reproducibility Pipeline (Study 6)</h1>
 <h3 class="subtitle">Within-subjects test: a broad halo in, a narrow
 harm door out</h3>
 <h4 class="author">Sacred Values project</h4>
-<h4 class="date">Knitted 27 July 2026</h4>
+<h4 class="date">Knitted 09 August 2026</h4>
 
 </div>
 
@@ -1684,23 +1684,13 @@ harm door out</h3>
 <div id="what-this-document-is" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> What this document
 is</h1>
-<p>Study 6 (N = 972) is the most stringent test of the harm pathway: a
-fully crossed <strong>within-subjects</strong> design in which each
-participant evaluates one vignette per moral foundation (Harm, Fairness,
-Loyalty, Authority, Purity), each randomly sacred or non-sacred. It asks
-whether the route to trust still runs through perceived
-<em>harm-aversion</em> even when the scenario foregrounds a different
-foundation.</p>
 <p>This pipeline reproduces, from the raw OSF long-format data, the
 three Study 6 results the paper reports: the <strong>main
 effect</strong> of sacred condition on trustworthiness, the
 <strong>moral halo</strong> (the sacred display raising perceived
 sacralization on every foundation), and the <strong>multilevel parallel
 mediation</strong> showing perceived Harm to be the dominant route to
-trust. It follows the same push-button standard as the other pipelines
-(self-contained, data auto-located, sample sizes asserted, advance
-targets, <code>sessionInfo()</code> footer). Targets are the numbers the
-current main text and SI print; the paper stands alone.</p>
+trust.</p>
 <blockquote>
 <p><strong>Runtime.</strong> The multilevel mediation uses a clustered
 bootstrap (5,000 resamples on 4,860 rows) and takes ~3 minutes; it is
@@ -2376,9 +2366,9 @@ dominance</strong>, cluster-bootstrapped on participant — and report
 <strong>VIFs</strong> to quantify the collinearity. Note that the b-path
 ratio (“~6x the next pathway”) shrinks under this decomposition to
 roughly 2x: relative weights return to Fairness and Authority the shared
-variance the partialling had stripped from them. The key result is that
-Harm remains the single largest contributor with a bootstrap CI that
-does not overlap any other foundation.</p>
+variance the partialling had stripped from them. Harm remains the single
+largest contributor with a bootstrap CI that does not overlap any other
+foundation.</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">file.path</span>(<span class="fu">find_data_root</span>(), <span class="st">&quot;scripts&quot;</span>, <span class="st">&quot;R&quot;</span>, <span class="st">&quot;collinearity_helpers.R&quot;</span>))</span>
 <span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a></span>
 <span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a>s6_rw <span class="ot">&lt;-</span> <span class="fu">collinearity_table</span>(<span class="fu">as.data.frame</span>(ad), <span class="st">&quot;Trustworthiness&quot;</span>,</span>
@@ -2598,13 +2588,6 @@ manuscript</h1>
 <span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">  (manuscript: Harm dominant; Fairness and Authority small but significant; Loyalty and Purity null.)</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Mediates trust: Harm, Fairness, Authority 
 ##   (manuscript: Harm dominant; Fairness and Authority small but significant; Loyalty and Purity null.)</code></pre>
-<p><strong>Reading the result.</strong> A broad halo in (the sacred
-display raises perceived sacralization on all five foundations by a
-similar, large amount, standardized <span class="math inline">\(a\)</span> between ~.51 and .60), but a narrow
-door out (only perceived Harm carries a substantial path to trust, <span class="math inline">\(\beta \approx .29\)</span>; Fairness and Authority
-small, Loyalty and Purity null). The harm pathway dominates even though
-the within-subjects design lets every foundation compete on equal
-footing — the paper’s central claim for the mechanism.</p>
 <hr />
 </div>
 <div id="si-results" class="section level1" number="8">
@@ -4601,15 +4584,9 @@ participant’s <strong>first vignette block</strong>: two-way ANOVAs
 (Vignette Condition x First-Block Group) on trust (H1) and on each of
 the five sacralization scores (H2), and a parallel mediation controlling
 for First-Block Group (H3). The presentation order needed to build this
-subset is not carried in the <strong>long</strong> dataset, which holds
-only broken order artifacts (<code>OrderCounter</code> is uniformly 0; a
-mangled <code>Position___e___Field_OrderCounter_</code> field that –
-because a Qualtrics pipe in its name never resolved – was overwritten
-each block and so holds only the <em>last</em> block; and a
-<code>FirstBlockGroup</code> variable that silently miscodes
-Fairness-first participants as <code>NA</code>).</p>
-<p><strong>The presentation order is in fact fully recoverable – from
-the wide dataset.</strong> The wide file
+subset is not carried in the <strong>long</strong> dataset.</p>
+<p><strong>The presentation order is recoverable from the wide
+dataset.</strong> The wide file
 (<code>OSF SV Trust - Study 6 Wide Dataset.sav</code>, not read
 elsewhere in this pipeline) carries five columns the long export
 dropped: <code>Harm_Block_1</code>, <code>Fair_Block_1</code>,
@@ -4906,7 +4883,7 @@ percentile CIs), full N.</caption>
 <p>The first-block-only analysis reproduces the paper’s story on a clean
 between-subjects footing and the full N = 972: a large condition effect
 on trust, a broad halo across all five foundations, and a mediation
-dominated by perceived Harm.</p>
+dominated by perceived sacralization of the Harm foundation.</p>
 </div>
 </div>
 <div id="audit-study-6-si" class="section level2" number="8.8">
