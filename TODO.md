@@ -15,10 +15,10 @@ results.do`, "Are religious people more trustworthy?" block — `Wor_pre` swappe
 for `Wor_agg_avg` in all three `summarize`/`ranksum` calls. See the `TODO(...)`
 comment inline.
 
-**Caveat: this .do file is not git-tracked.** `data/` is a symlink to
-`~/Downloads/osfstorage-archive (2)` and is gitignored in this repo. The edit
-exists only on disk at that path — back it up or copy it somewhere durable
-before it can be lost (e.g. Downloads folder cleanup).
+`data/` is now a real, git-ignored folder inside this repo (2026-08-09
+consolidation — see below), so this edit is Dropbox-backed even though it's
+still outside git; the earlier "only exists on disk in Downloads" risk no
+longer applies.
 
 **Remaining steps:**
 
@@ -35,3 +35,16 @@ before it can be lost (e.g. Downloads folder cleanup).
        `Trust received` column already is) instead, and rewrite the
        "Descriptive flag" callout to report full, unqualified reproduction
        rather than a resolved-but-noteworthy residual.
+
+## Data consolidation (done 2026-08-09)
+
+`data/` was a symlink to `~/Downloads/osfstorage-archive (2)`, one of four+
+drifting local copies of the OSF archive scattered across Dropbox and
+Downloads (see the file-hygiene audit that day). Replaced with a real,
+git-ignored `data/` folder inside this repo, rebuilt from the newest clean
+download (`ju9rq-osfstorage-archive`, Jul 27), with today's `Wor_pre` ->
+`Wor_agg_avg` Stata edit carried forward. All four notebooks re-rendered
+clean against the new folder; Study 3's audit summary unchanged (37 claims,
+0 DIFFERS). The old in-Dropbox `osfstorage-archive/` (an older,
+pre-reorganization vintage) was moved to `Sacred Values
+Experiment/_archive/osfstorage-archive-2026-06-19-superseded/`, not deleted.

@@ -21,12 +21,27 @@ The rendered `.html` reports let you read the full output, including all tables 
 
 ## Data layout the scripts expect
 
-The OSF project already ships the study data in a folder named `data/`, sitting beside this `Analysis code and reproducibility/` folder. The notebooks and scripts locate it automatically by walking up the directory tree for that `data/` folder — so no manual setup is needed. To run them:
+`data/` at the repo root is a real, git-ignored folder — not a symlink — holding the
+OSF project's six `Study 1 …` – `Study 6 …` folders. The notebooks and scripts locate
+it automatically by walking up the directory tree for that `data/` folder, so no
+manual setup is needed once it's in place. It is deliberately kept out of GitHub via
+`.gitignore` rather than out of Dropbox: it lives inside this repo's own folder so
+there's exactly one copy, backed up the same way as everything else here.
 
-1. Download the whole OSF project, keeping its folder structure intact — you get `data/` (the six `Study 1 …` – `Study 6 …` folders) next to `Analysis code and reproducibility/`.
-2. Knit each `.Rmd` (or run any of the standalone scripts).
+If you're setting this up fresh (e.g. on a new machine): download the whole OSF
+project (osf.io/ju9rq) and copy its six `Study 1 …` – `Study 6 …` folders into
+`data/` at this repo's root. Don't copy the OSF project's own `Analysis code and
+reproducibility/` folder into `data/` — that's a stale bundled snapshot of this same
+code; the notebooks in this repo are authoritative.
 
-**Do not rename the `data/` folder, the study folders, or the data files.** The scripts reference them by exact name and path; renaming will break the reproduction.
+**Do not rename the `data/` folder, the study folders, or the data files.** The
+scripts reference them by exact name and path; renaming will break the reproduction.
+
+For pushing a refreshed copy of this code back to OSF, see
+`../scripts/build_osf_staging.sh` and `../scripts/osf_upload.sh` in the parent
+`PNAS version/` repo — they rebuild and upload the OSF-side `Analysis code and
+reproducibility/` folder from this repo on demand, rather than keeping a
+manually-maintained copy in sync.
 
 ## Which file feeds which study
 

@@ -1678,7 +1678,7 @@ trustworthy character — Reproducibility Pipeline (Studies 1 &amp;
 reported for Studies 1 and 2, in both the main text and the Supporting
 Information</h3>
 <h4 class="author">Sacred Values project</h4>
-<h4 class="date">Knitted 27 July 2026</h4>
+<h4 class="date">Knitted 09 August 2026</h4>
 
 </div>
 
@@ -1689,26 +1689,10 @@ is</h1>
 <p>This is a <strong>single, self-contained reproducibility
 pipeline</strong> for Studies 1 and 2 of <em>Sacred values as index
 signals of trustworthy character</em>. Knitting it from a clean R
-session reproduces, from the raw OSF data, <strong>every statistical
-test reported for these two studies — in both the main text and the
+session reproduces, from the raw data, <strong>every statistical test
+reported for these two studies — in both the main text and the
 Supporting Information (SI)</strong> — and audits each computed value
-against the number printed in the paper. Concretely it covers:</p>
-<ul>
-<li>the headline trustworthiness contrast, its effect size and
-probability of superiority (CLES), and the out-group replication (main
-text);</li>
-<li>the low-sanctity-observer robustness check (main text);</li>
-<li>the pre-registered <em>parametric</em> tests, trait by trait and
-relationship by relationship (SI);</li>
-<li>the sensitivity analysis <em>without exclusions</em> (SI);</li>
-<li>the exploratory <em>selfishness</em> attribution analyses, including
-the single and dual mediation models (SI);</li>
-<li>the Shapiro-Wilk normality tests that motivate the non-parametric
-approach (SI); and</li>
-<li>the inter-correlation matrices among the key variables (SI), plus
-the Study 2 sacralizing-of-friendship and closeness-to-community effects
-(SI).</li>
-</ul>
+against the number printed in the paper.</p>
 <p><strong>Design standard: push-button replication</strong> (Wood,
 Müller &amp; Brown, <em>PLOS ONE</em> 2018): a third party should be
 able to take the archived data and code and <em>“push the button”</em>
@@ -1765,10 +1749,6 @@ own seed.</td>
 </tr>
 </tbody>
 </table>
-<p>No original SPSS syntax survived, so the analyses here are a
-from-scratch rebuild guided by the OSF variable keys. The fact that the
-rebuilt numbers match the paper (see the audit tables) is itself the
-evidence that the rebuild is faithful.</p>
 <hr />
 </div>
 <div id="setup" class="section level1" number="2">
@@ -1824,8 +1804,7 @@ the chunk below.</p>
 <div id="statistical-helper-functions" class="section level2 tabset" number="2.2">
 <h2 class="tabset"><span class="header-section-number">2.2</span>
 Statistical helper functions</h2>
-<p>These functions do all the statistical work. They are defined here,
-in the open, so a sceptical reader can audit every line. (Click the
+<p>These functions do all the statistical work. (Click the
 <strong>Code</strong> toggle to collapse them.)</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Mean of a set of items, coercing SPSS labelled columns to plain numeric -----</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>composite <span class="ot">&lt;-</span> <span class="cf">function</span>(df, items) {</span>
@@ -3566,7 +3545,7 @@ pooled within-group SD.</li>
 record</h1>
 <p>Everything above ran from the raw <code>.sav</code> files with the
 single seed set at the top. The software environment is recorded below
-so a future reader can reproduce the bit-level results.</p>
+so a future reader can reproduce the results.</p>
 <pre><code>## R version: R version 4.5.2 (2025-10-31)</code></pre>
 <pre><code>## Platform : aarch64-apple-darwin20</code></pre>
 <pre><code>## Seed     : 20260619 (global); 2024 (every mediation bootstrap)</code></pre>
