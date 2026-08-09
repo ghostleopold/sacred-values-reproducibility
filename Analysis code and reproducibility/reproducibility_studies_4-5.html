@@ -1694,9 +1694,10 @@ reported with both the effect size <em>r</em> (= Z/sqrt(N)) and the
 common-language effect size (CLES); then the <strong>moral-foundation
 “halo”</strong> (does the sacred display raise perceived sacralization
 on each of the five foundations?); and finally the
-<strong>competing-mediator paths to trust</strong> (which foundations
-actually carry trust?). Each computed value is audited in-document
-against the number printed in the manuscript.</p>
+<strong>competing-mediator paths to trust</strong> (beliefs about what
+type of sacralization in particular predicts trust?). Each computed
+value is audited in-document against the number printed in the
+manuscript.</p>
 <p>It follows the same <strong>push-button replication</strong> standard
 (Wood, Müller &amp; Brown, <em>PLOS ONE</em> 2018): one self-contained
 <code>.Rmd</code>, raw data read directly, no machine-specific paths,
@@ -1757,20 +1758,34 @@ parameters, and data location</h2>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  }</span>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>}</span>
 <span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>DATA_DIR <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">find_data_root</span>(), <span class="st">&quot;data&quot;</span>)   <span class="co"># &lt;- override here if needed</span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>s4_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR,</span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  <span class="st">&quot;Study 4 - Pork Investment - Moral Character Mediation&quot;</span>, <span class="st">&quot;OSF SV Trust - Study 4.sav&quot;</span>)</span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>s5_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR,</span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  <span class="st">&quot;Study 5 - Environmental Sacred Values&quot;</span>, <span class="st">&quot;OSF Study 5.sav&quot;</span>)</span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="fu">stopifnot</span>(</span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  <span class="st">&quot;Study 4 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s4_file),</span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  <span class="st">&quot;Study 5 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s5_file)</span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>)</span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Data directory:</span><span class="sc">\n</span><span class="st">  &quot;</span>, DATA_DIR, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>PROJECT_ROOT <span class="ot">&lt;-</span> <span class="fu">find_data_root</span>()</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>DATA_DIR     <span class="ot">&lt;-</span> <span class="fu">file.path</span>(PROJECT_ROOT, <span class="st">&quot;data&quot;</span>)   <span class="co"># &lt;- override here if needed</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># Report paths relative to the project root, so the knitted HTML carries no</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co"># machine-specific absolute path. Anything outside the root prints as its</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co"># basename only.</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>rel_to_root <span class="ot">&lt;-</span> <span class="cf">function</span>(path, <span class="at">root =</span> PROJECT_ROOT) {</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>  path <span class="ot">&lt;-</span> <span class="fu">normalizePath</span>(path, <span class="at">winslash =</span> <span class="st">&quot;/&quot;</span>, <span class="at">mustWork =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  root <span class="ot">&lt;-</span> <span class="fu">normalizePath</span>(root, <span class="at">winslash =</span> <span class="st">&quot;/&quot;</span>, <span class="at">mustWork =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">startsWith</span>(path, root)) {</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>    <span class="fu">file.path</span>(<span class="st">&quot;&lt;project root&gt;&quot;</span>, <span class="fu">sub</span>(<span class="st">&quot;^/&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="fu">substring</span>(path, <span class="fu">nchar</span>(root) <span class="sc">+</span> <span class="dv">1</span><span class="dt">L</span>)))</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>    <span class="fu">basename</span>(path)</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>  }</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>}</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>s4_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR,</span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>  <span class="st">&quot;Study 4 - Pork Investment - Moral Character Mediation&quot;</span>, <span class="st">&quot;OSF SV Trust - Study 4.sav&quot;</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>s5_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR,</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>  <span class="st">&quot;Study 5 - Environmental Sacred Values&quot;</span>, <span class="st">&quot;OSF Study 5.sav&quot;</span>)</span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a><span class="fu">stopifnot</span>(</span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>  <span class="st">&quot;Study 4 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s4_file),</span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>  <span class="st">&quot;Study 5 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s5_file)</span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>)</span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Data directory:</span><span class="sc">\n</span><span class="st">  &quot;</span>, <span class="fu">rel_to_root</span>(DATA_DIR), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Data directory:
-##    /Users/thandfie/Library/CloudStorage/Dropbox/Toby-Ji-shared-folder/Sacred Values Experiment/paper/PNAS version/sacred-values-reproducibility/data</code></pre>
+##    &lt;project root&gt;/data</code></pre>
 </div>
 <div id="parallel-mediation-engine" class="section level2 tabset" number="2.2">
 <h2 class="tabset"><span class="header-section-number">2.2</span>
@@ -2116,8 +2131,8 @@ acceptance (1 = sacred).</caption>
 <pre><code>## Trust effect sizes: r = 0.59, CLES = 0.84  (manuscript Study 4 reports both).</code></pre>
 <p>The sacred commitment lifts both outcomes well past chance: trust is
 the stronger signal, social acceptance follows. Only after establishing
-that the effect exists do we ask <em>which moral foundations carry
-it</em> – the parallel mediation below.</p>
+that the effect exists do we ask <em>which moral foundations predict
+trust</em> – the parallel mediation below.</p>
 </div>
 <div id="the-moral-halo-a-paths-does-the-sacred-display-raise-every-foundation" class="section level2" number="3.3">
 <h2><span class="header-section-number">3.3</span> The moral halo
@@ -2182,9 +2197,9 @@ foundation.</caption>
 </tbody>
 </table>
 </div>
-<div id="competing-mediators-which-foundation-carries-trust" class="section level2" number="3.4">
+<div id="competing-mediators-which-foundations-predict-trust" class="section level2" number="3.4">
 <h2><span class="header-section-number">3.4</span> Competing mediators:
-which foundation carries trust?</h2>
+which foundations predict trust?</h2>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">tidy_indirect</span>(s4_trust),</span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;Study 4: indirect effects on trustworthiness (parallel mediation).&quot;</span>)</span></code></pre></div>
 <table>
@@ -2540,7 +2555,7 @@ manuscript (Study 4)</h2>
 <span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Halo: %d of 5 foundations raised (manuscript: all five, ps &lt; .001).</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
 <span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>            n_raised4))</span></code></pre></div>
 <pre><code>## Halo: 5 of 5 foundations raised (manuscript: all five, ps &lt; .001).</code></pre>
-<p>The route to trust is carried by <strong>Harm and Fairness</strong>
+<p>The route to trust is predicted by <strong>Harm and Fairness</strong>
 (CIs exclude zero); Loyalty, Authority, and Purity do not — matching the
 manuscript. The manuscript’s caution that, in a single religious
 scenario, Harm and Fairness “could not be cleanly separated” is exactly
@@ -3153,13 +3168,6 @@ prepare</h2>
 <pre><code>## Cond_01
 ##   0   1 
 ## 146 142</code></pre>
-<blockquote>
-<p><strong>Note.</strong> A clean exclusion yields <strong>N =
-288</strong>, matching the current manuscript. (An earlier draft printed
-289; the one-case gap was a base-R <code>NA</code>-indexing artifact in
-the original script — <code>lavaan</code> used 288 complete cases either
-way — and the manuscript now reads 288.)</p>
-</blockquote>
 </div>
 <div id="basic-effect-of-condition-does-the-sacred-display-raise-trust-and-social-acceptance-1" class="section level2" number="4.2">
 <h2><span class="header-section-number">4.2</span> Basic effect of
@@ -3296,9 +3304,9 @@ foundation.</caption>
 </tbody>
 </table>
 </div>
-<div id="competing-mediators-which-foundation-carries-trust-1" class="section level2" number="4.4">
+<div id="competing-mediators-which-foundations-predict-trust-1" class="section level2" number="4.4">
 <h2><span class="header-section-number">4.4</span> Competing mediators:
-which foundation carries trust?</h2>
+which foundations predict trust?</h2>
 <div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">tidy_indirect</span>(s5_trust),</span>
 <span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">&quot;Study 5: indirect effects on trustworthiness (parallel mediation).&quot;</span>)</span></code></pre></div>
 <table>
@@ -4515,37 +4523,8 @@ on the <strong>summed</strong> four-item composite
 <span id="cb67-9"><a href="#cb67-9" tabindex="-1"></a>          <span class="st">&quot;Archived condition ns are not 146 non-sacred / 142 sacred&quot;</span> <span class="ot">=</span></span>
 <span id="cb67-10"><a href="#cb67-10" tabindex="-1"></a>            <span class="fu">all</span>(<span class="fu">as.integer</span>(<span class="fu">table</span>(<span class="fu">as.numeric</span>(s5<span class="sc">$</span>Cond_01))) <span class="sc">==</span> <span class="fu">c</span>(<span class="dv">146</span>, <span class="dv">142</span>)))</span></code></pre></div>
 </div>
-<div id="si-robustness-controlling-for-demographics" class="section level2" number="4.14">
-<h2><span class="header-section-number">4.14</span> SI: robustness
-controlling for demographics</h2>
-<p>Hierarchical regression of trustworthiness on condition (Level 1),
-then adding demographics (Level 2). Politics recoded to conservatism
-(Republican = 1), sex to male, ethnicity to white.</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" tabindex="-1"></a>s5d <span class="ot">&lt;-</span> s5 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
-<span id="cb68-2"><a href="#cb68-2" tabindex="-1"></a>  <span class="at">trust =</span> <span class="fu">as.numeric</span>(Trust_Att), <span class="at">cond =</span> <span class="fu">as.numeric</span>(Cond_01), <span class="at">age =</span> <span class="fu">as.numeric</span>(Age),</span>
-<span id="cb68-3"><a href="#cb68-3" tabindex="-1"></a>  <span class="at">conservatism =</span> dplyr<span class="sc">::</span><span class="fu">case_when</span>(<span class="fu">as.character</span>(haven<span class="sc">::</span><span class="fu">as_factor</span>(Politics)) <span class="sc">==</span> <span class="st">&quot;Republican&quot;</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb68-4"><a href="#cb68-4" tabindex="-1"></a>                    <span class="fu">as.character</span>(haven<span class="sc">::</span><span class="fu">as_factor</span>(Politics)) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;Democrat&quot;</span>,<span class="st">&quot;Independent&quot;</span>) <span class="sc">~</span> <span class="dv">0</span>,</span>
-<span id="cb68-5"><a href="#cb68-5" tabindex="-1"></a>                    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_real_</span>),</span>
-<span id="cb68-6"><a href="#cb68-6" tabindex="-1"></a>  <span class="at">male  =</span> dplyr<span class="sc">::</span><span class="fu">case_when</span>(<span class="fu">as.character</span>(haven<span class="sc">::</span><span class="fu">as_factor</span>(Sex)) <span class="sc">==</span> <span class="st">&quot;Male&quot;</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb68-7"><a href="#cb68-7" tabindex="-1"></a>                    <span class="fu">as.character</span>(haven<span class="sc">::</span><span class="fu">as_factor</span>(Sex)) <span class="sc">==</span> <span class="st">&quot;Female&quot;</span> <span class="sc">~</span> <span class="dv">0</span>, <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_real_</span>),</span>
-<span id="cb68-8"><a href="#cb68-8" tabindex="-1"></a>  <span class="at">white =</span> <span class="fu">as.integer</span>(<span class="fu">as.character</span>(haven<span class="sc">::</span><span class="fu">as_factor</span>(Ethnicity)) <span class="sc">==</span> <span class="st">&quot;White&quot;</span>))</span>
-<span id="cb68-9"><a href="#cb68-9" tabindex="-1"></a></span>
-<span id="cb68-10"><a href="#cb68-10" tabindex="-1"></a>std_beta <span class="ot">&lt;-</span> <span class="cf">function</span>(fit, term) {</span>
-<span id="cb68-11"><a href="#cb68-11" tabindex="-1"></a>  b <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit)[term]; mf <span class="ot">&lt;-</span> <span class="fu">model.frame</span>(fit)</span>
-<span id="cb68-12"><a href="#cb68-12" tabindex="-1"></a>  <span class="fu">unname</span>(b <span class="sc">*</span> <span class="fu">sd</span>(mf[[term]]) <span class="sc">/</span> <span class="fu">sd</span>(mf[[<span class="dv">1</span>]]))</span>
-<span id="cb68-13"><a href="#cb68-13" tabindex="-1"></a>}</span>
-<span id="cb68-14"><a href="#cb68-14" tabindex="-1"></a>s5_L1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(trust <span class="sc">~</span> cond, <span class="at">data =</span> s5d)</span>
-<span id="cb68-15"><a href="#cb68-15" tabindex="-1"></a>s5_L2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(trust <span class="sc">~</span> cond <span class="sc">+</span> age <span class="sc">+</span> conservatism <span class="sc">+</span> male <span class="sc">+</span> white, <span class="at">data =</span> s5d)</span>
-<span id="cb68-16"><a href="#cb68-16" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;L1: cond B = %.2f, beta = %.2f (SI: 11.93, .35)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb68-17"><a href="#cb68-17" tabindex="-1"></a>            <span class="fu">coef</span>(s5_L1)[<span class="st">&quot;cond&quot;</span>], <span class="fu">std_beta</span>(s5_L1, <span class="st">&quot;cond&quot;</span>)))</span></code></pre></div>
-<pre><code>## L1: cond B = 12.14, beta = 0.36 (SI: 11.93, .35)</code></pre>
-<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;L2: cond B = %.2f, beta = %.2f (SI: 12.93, .37); age B = %.2f, beta = %.2f (SI: 0.29, .26); N = %d</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb70-2"><a href="#cb70-2" tabindex="-1"></a>            <span class="fu">coef</span>(s5_L2)[<span class="st">&quot;cond&quot;</span>], <span class="fu">std_beta</span>(s5_L2, <span class="st">&quot;cond&quot;</span>),</span>
-<span id="cb70-3"><a href="#cb70-3" tabindex="-1"></a>            <span class="fu">coef</span>(s5_L2)[<span class="st">&quot;age&quot;</span>], <span class="fu">std_beta</span>(s5_L2, <span class="st">&quot;age&quot;</span>), <span class="fu">nobs</span>(s5_L2)))</span></code></pre></div>
-<pre><code>## L2: cond B = 13.84, beta = 0.40 (SI: 12.93, .37); age B = 0.26, beta = 0.24 (SI: 0.29, .26); N = 273</code></pre>
-</div>
-<div id="si-willingness-to-be-close-friends-by-conflict-expectation-tbls5-friendship-ce" class="section level2" number="4.15">
-<h2><span class="header-section-number">4.15</span> SI: willingness to
+<div id="si-willingness-to-be-close-friends-by-conflict-expectation-tbls5-friendship-ce" class="section level2" number="4.14">
+<h2><span class="header-section-number">4.14</span> SI: willingness to
 be close friends, by conflict expectation
 (<code>tbl:s5-friendship-ce</code>)</h2>
 <p>2 × 3 between-subjects factorial ANOVA (Type III, as in SPSS) of
@@ -4559,10 +4538,10 @@ the statistics are: condition <em>F</em>(1, 282) = 21.46, <em>p</em>
 <em>M</em> = 78.34, <em>SD</em> = 21.87, <em>n</em> = 94 (the earlier
 SPSS run had retained one case absent from the archived analytic
 sample).</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" tabindex="-1"></a>s5f <span class="ot">&lt;-</span> s5 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">friend =</span> <span class="fu">as.numeric</span>(Relations_1),</span>
-<span id="cb72-2"><a href="#cb72-2" tabindex="-1"></a>                     <span class="at">cond =</span> <span class="fu">factor</span>(Cond_01), <span class="at">ce =</span> <span class="fu">factor</span>(CE_Fri_HL))</span>
-<span id="cb72-3"><a href="#cb72-3" tabindex="-1"></a>s5_fce <span class="ot">&lt;-</span> <span class="fu">anova_type3</span>(friend <span class="sc">~</span> cond <span class="sc">*</span> ce, s5f)</span>
-<span id="cb72-4"><a href="#cb72-4" tabindex="-1"></a><span class="fu">kable</span>(s5_fce, <span class="at">caption =</span> <span class="st">&quot;Friendship-CE factorial ANOVA (Type III). SI: condition F(1,282)=21.46; CE F(2,282)=3.27, p=.039; interaction F(2,282)=0.67, p=.513.&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" tabindex="-1"></a>s5f <span class="ot">&lt;-</span> s5 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">friend =</span> <span class="fu">as.numeric</span>(Relations_1),</span>
+<span id="cb68-2"><a href="#cb68-2" tabindex="-1"></a>                     <span class="at">cond =</span> <span class="fu">factor</span>(Cond_01), <span class="at">ce =</span> <span class="fu">factor</span>(CE_Fri_HL))</span>
+<span id="cb68-3"><a href="#cb68-3" tabindex="-1"></a>s5_fce <span class="ot">&lt;-</span> <span class="fu">anova_type3</span>(friend <span class="sc">~</span> cond <span class="sc">*</span> ce, s5f)</span>
+<span id="cb68-4"><a href="#cb68-4" tabindex="-1"></a><span class="fu">kable</span>(s5_fce, <span class="at">caption =</span> <span class="st">&quot;Friendship-CE factorial ANOVA (Type III). SI: condition F(1,282)=21.46; CE F(2,282)=3.27, p=.039; interaction F(2,282)=0.67, p=.513.&quot;</span>)</span></code></pre></div>
 <table>
 <caption>Friendship-CE factorial ANOVA (Type III). SI: condition
 F(1,282)=21.46; CE F(2,282)=3.27, p=.039; interaction F(2,282)=0.67,
@@ -4604,9 +4583,9 @@ p=.513.</caption>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" tabindex="-1"></a>s5_fce_means <span class="ot">&lt;-</span> s5f <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ce), <span class="sc">!</span><span class="fu">is.na</span>(friend)) <span class="sc">%&gt;%</span></span>
-<span id="cb73-2"><a href="#cb73-2" tabindex="-1"></a>  <span class="fu">group_by</span>(ce, cond) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">M =</span> <span class="fu">round</span>(<span class="fu">mean</span>(friend),<span class="dv">2</span>), <span class="at">SD =</span> <span class="fu">round</span>(<span class="fu">sd</span>(friend),<span class="dv">2</span>), <span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups=</span><span class="st">&quot;drop&quot;</span>)</span>
-<span id="cb73-3"><a href="#cb73-3" tabindex="-1"></a><span class="fu">kable</span>(s5_fce_means, <span class="at">caption =</span> <span class="st">&quot;Study 5 willingness-to-befriend means by conflict-expectation group and condition (tbl:s5-friendship-ce).&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" tabindex="-1"></a>s5_fce_means <span class="ot">&lt;-</span> s5f <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ce), <span class="sc">!</span><span class="fu">is.na</span>(friend)) <span class="sc">%&gt;%</span></span>
+<span id="cb69-2"><a href="#cb69-2" tabindex="-1"></a>  <span class="fu">group_by</span>(ce, cond) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">M =</span> <span class="fu">round</span>(<span class="fu">mean</span>(friend),<span class="dv">2</span>), <span class="at">SD =</span> <span class="fu">round</span>(<span class="fu">sd</span>(friend),<span class="dv">2</span>), <span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups=</span><span class="st">&quot;drop&quot;</span>)</span>
+<span id="cb69-3"><a href="#cb69-3" tabindex="-1"></a><span class="fu">kable</span>(s5_fce_means, <span class="at">caption =</span> <span class="st">&quot;Study 5 willingness-to-befriend means by conflict-expectation group and condition (tbl:s5-friendship-ce).&quot;</span>)</span></code></pre></div>
 <table>
 <caption>Study 5 willingness-to-befriend means by conflict-expectation
 group and condition (tbl:s5-friendship-ce).</caption>
@@ -4664,68 +4643,60 @@ group and condition (tbl:s5-friendship-ce).</caption>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" tabindex="-1"></a><span class="co"># Cell-by-cell audit of tbl:s5-friendship-ce (rows: CE group x condition; SI as corrected).</span></span>
-<span id="cb74-2"><a href="#cb74-2" tabindex="-1"></a>s5_fce_claim <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb74-3"><a href="#cb74-3" tabindex="-1"></a>  <span class="at">ce =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">each =</span> <span class="dv">2</span>)), <span class="at">cond =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">3</span>)),</span>
-<span id="cb74-4"><a href="#cb74-4" tabindex="-1"></a>  <span class="at">M  =</span> <span class="fu">c</span>(<span class="fl">61.71</span>, <span class="fl">73.27</span>, <span class="fl">56.63</span>, <span class="fl">78.34</span>, <span class="fl">46.72</span>, <span class="fl">67.09</span>),</span>
-<span id="cb74-5"><a href="#cb74-5" tabindex="-1"></a>  <span class="at">SD =</span> <span class="fu">c</span>(<span class="fl">27.36</span>, <span class="fl">32.02</span>, <span class="fl">26.36</span>, <span class="fl">21.87</span>, <span class="fl">27.43</span>, <span class="fl">28.29</span>),</span>
-<span id="cb74-6"><a href="#cb74-6" tabindex="-1"></a>  <span class="at">n  =</span> <span class="fu">c</span>(<span class="dv">35</span>, <span class="dv">15</span>, <span class="dv">93</span>, <span class="dv">94</span>, <span class="dv">18</span>, <span class="dv">33</span>))</span>
-<span id="cb74-7"><a href="#cb74-7" tabindex="-1"></a>s5_fce_cmp <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">left_join</span>(s5_fce_claim, s5_fce_means, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;ce&quot;</span>, <span class="st">&quot;cond&quot;</span>),</span>
-<span id="cb74-8"><a href="#cb74-8" tabindex="-1"></a>                               <span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">&quot;_SI&quot;</span>, <span class="st">&quot;_computed&quot;</span>))</span>
-<span id="cb74-9"><a href="#cb74-9" tabindex="-1"></a><span class="co"># Strict gate: archived cell means, SDs, and n&#39;s must match the SI table exactly.</span></span>
-<span id="cb74-10"><a href="#cb74-10" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="st">&quot;tbl:s5-friendship-ce cells do not reproduce&quot;</span> <span class="ot">=</span> <span class="fu">all</span>(</span>
-<span id="cb74-11"><a href="#cb74-11" tabindex="-1"></a>  <span class="fu">abs</span>(s5_fce_cmp<span class="sc">$</span>M_SI <span class="sc">-</span> s5_fce_cmp<span class="sc">$</span>M_computed) <span class="sc">&lt;=</span> .<span class="dv">006</span>,</span>
-<span id="cb74-12"><a href="#cb74-12" tabindex="-1"></a>  <span class="fu">abs</span>(s5_fce_cmp<span class="sc">$</span>SD_SI <span class="sc">-</span> s5_fce_cmp<span class="sc">$</span>SD_computed) <span class="sc">&lt;=</span> .<span class="dv">006</span>,</span>
-<span id="cb74-13"><a href="#cb74-13" tabindex="-1"></a>  s5_fce_cmp<span class="sc">$</span>n_SI <span class="sc">==</span> s5_fce_cmp<span class="sc">$</span>n_computed))</span>
-<span id="cb74-14"><a href="#cb74-14" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;tbl:s5-friendship-ce reproduces (M, SD, n) in all six cells, including the corrected</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb74-15"><a href="#cb74-15" tabindex="-1"></a>    <span class="st">&quot;ambivalent-sacred cell. Group ns low/ambivalent/high = &quot;</span>,</span>
-<span id="cb74-16"><a href="#cb74-16" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">table</span>(s5f<span class="sc">$</span>ce[<span class="sc">!</span><span class="fu">is.na</span>(s5f<span class="sc">$</span>friend)]), <span class="at">collapse =</span> <span class="st">&quot;/&quot;</span>),</span>
-<span id="cb74-17"><a href="#cb74-17" tabindex="-1"></a>    <span class="st">&quot; (SI: 50/187/51); condition ns non-sacred/sacred = &quot;</span>,</span>
-<span id="cb74-18"><a href="#cb74-18" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">table</span>(s5f<span class="sc">$</span>cond[<span class="sc">!</span><span class="fu">is.na</span>(s5f<span class="sc">$</span>friend)]), <span class="at">collapse =</span> <span class="st">&quot;/&quot;</span>),</span>
-<span id="cb74-19"><a href="#cb74-19" tabindex="-1"></a>    <span class="st">&quot; (SI: 146/142).</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="at">sep =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" tabindex="-1"></a><span class="co"># Cell-by-cell audit of tbl:s5-friendship-ce (rows: CE group x condition; SI as corrected).</span></span>
+<span id="cb70-2"><a href="#cb70-2" tabindex="-1"></a>s5_fce_claim <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb70-3"><a href="#cb70-3" tabindex="-1"></a>  <span class="at">ce =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">each =</span> <span class="dv">2</span>)), <span class="at">cond =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">3</span>)),</span>
+<span id="cb70-4"><a href="#cb70-4" tabindex="-1"></a>  <span class="at">M  =</span> <span class="fu">c</span>(<span class="fl">61.71</span>, <span class="fl">73.27</span>, <span class="fl">56.63</span>, <span class="fl">78.34</span>, <span class="fl">46.72</span>, <span class="fl">67.09</span>),</span>
+<span id="cb70-5"><a href="#cb70-5" tabindex="-1"></a>  <span class="at">SD =</span> <span class="fu">c</span>(<span class="fl">27.36</span>, <span class="fl">32.02</span>, <span class="fl">26.36</span>, <span class="fl">21.87</span>, <span class="fl">27.43</span>, <span class="fl">28.29</span>),</span>
+<span id="cb70-6"><a href="#cb70-6" tabindex="-1"></a>  <span class="at">n  =</span> <span class="fu">c</span>(<span class="dv">35</span>, <span class="dv">15</span>, <span class="dv">93</span>, <span class="dv">94</span>, <span class="dv">18</span>, <span class="dv">33</span>))</span>
+<span id="cb70-7"><a href="#cb70-7" tabindex="-1"></a>s5_fce_cmp <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">left_join</span>(s5_fce_claim, s5_fce_means, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;ce&quot;</span>, <span class="st">&quot;cond&quot;</span>),</span>
+<span id="cb70-8"><a href="#cb70-8" tabindex="-1"></a>                               <span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">&quot;_SI&quot;</span>, <span class="st">&quot;_computed&quot;</span>))</span>
+<span id="cb70-9"><a href="#cb70-9" tabindex="-1"></a><span class="co"># Strict gate: archived cell means, SDs, and n&#39;s must match the SI table exactly.</span></span>
+<span id="cb70-10"><a href="#cb70-10" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="st">&quot;tbl:s5-friendship-ce cells do not reproduce&quot;</span> <span class="ot">=</span> <span class="fu">all</span>(</span>
+<span id="cb70-11"><a href="#cb70-11" tabindex="-1"></a>  <span class="fu">abs</span>(s5_fce_cmp<span class="sc">$</span>M_SI <span class="sc">-</span> s5_fce_cmp<span class="sc">$</span>M_computed) <span class="sc">&lt;=</span> .<span class="dv">006</span>,</span>
+<span id="cb70-12"><a href="#cb70-12" tabindex="-1"></a>  <span class="fu">abs</span>(s5_fce_cmp<span class="sc">$</span>SD_SI <span class="sc">-</span> s5_fce_cmp<span class="sc">$</span>SD_computed) <span class="sc">&lt;=</span> .<span class="dv">006</span>,</span>
+<span id="cb70-13"><a href="#cb70-13" tabindex="-1"></a>  s5_fce_cmp<span class="sc">$</span>n_SI <span class="sc">==</span> s5_fce_cmp<span class="sc">$</span>n_computed))</span>
+<span id="cb70-14"><a href="#cb70-14" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;tbl:s5-friendship-ce reproduces (M, SD, n) in all six cells, including the corrected</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb70-15"><a href="#cb70-15" tabindex="-1"></a>    <span class="st">&quot;ambivalent-sacred cell. Group ns low/ambivalent/high = &quot;</span>,</span>
+<span id="cb70-16"><a href="#cb70-16" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">table</span>(s5f<span class="sc">$</span>ce[<span class="sc">!</span><span class="fu">is.na</span>(s5f<span class="sc">$</span>friend)]), <span class="at">collapse =</span> <span class="st">&quot;/&quot;</span>),</span>
+<span id="cb70-17"><a href="#cb70-17" tabindex="-1"></a>    <span class="st">&quot; (SI: 50/187/51); condition ns non-sacred/sacred = &quot;</span>,</span>
+<span id="cb70-18"><a href="#cb70-18" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">table</span>(s5f<span class="sc">$</span>cond[<span class="sc">!</span><span class="fu">is.na</span>(s5f<span class="sc">$</span>friend)]), <span class="at">collapse =</span> <span class="st">&quot;/&quot;</span>),</span>
+<span id="cb70-19"><a href="#cb70-19" tabindex="-1"></a>    <span class="st">&quot; (SI: 146/142).</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="at">sep =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
 <pre><code>## tbl:s5-friendship-ce reproduces (M, SD, n) in all six cells, including the corrected
 ## ambivalent-sacred cell. Group ns low/ambivalent/high = 50/187/51 (SI: 50/187/51); condition ns non-sacred/sacred = 146/142 (SI: 146/142).</code></pre>
 </div>
-<div id="audit-study-5-si" class="section level2" number="4.16">
-<h2><span class="header-section-number">4.16</span> Audit: Study 5
+<div id="audit-study-5-si" class="section level2" number="4.15">
+<h2><span class="header-section-number">4.15</span> Audit: Study 5
 SI</h2>
-<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" tabindex="-1"></a>r_num <span class="ot">&lt;-</span> <span class="cf">function</span>(cell) <span class="fu">as.numeric</span>(<span class="fu">sub</span>(<span class="st">&quot;[*]+$&quot;</span>, <span class="st">&quot;&quot;</span>, cell))</span>
-<span id="cb76-2"><a href="#cb76-2" tabindex="-1"></a>gic <span class="ot">&lt;-</span> <span class="cf">function</span>(tab, row, col) tab[[col]][tab<span class="sc">$</span>Variable <span class="sc">==</span> row]</span>
-<span id="cb76-3"><a href="#cb76-3" tabindex="-1"></a>s5_pm <span class="ot">&lt;-</span> <span class="cf">function</span>(v, c) s5_param[[c]][s5_param<span class="sc">$</span>Variable <span class="sc">==</span> v]</span>
-<span id="cb76-4"><a href="#cb76-4" tabindex="-1"></a>s5_cf <span class="ot">&lt;-</span> <span class="cf">function</span>(v, c) s5_conflict[[c]][s5_conflict<span class="sc">$</span>Outcome <span class="sc">==</span> v]</span>
-<span id="cb76-5"><a href="#cb76-5" tabindex="-1"></a>s5_si_audit <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(</span>
-<span id="cb76-6"><a href="#cb76-6" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr r(Trust, Social Acc.)&quot;</span>, <span class="fu">r_num</span>(<span class="fu">gic</span>(s5_ic, <span class="st">&quot;2. Social Acc.&quot;</span>, <span class="st">&quot;1.&quot;</span>)), <span class="fl">0.65</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
-<span id="cb76-7"><a href="#cb76-7" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr r(Trust, Environment)&quot;</span>, <span class="fu">r_num</span>(<span class="fu">gic</span>(s5_ic, <span class="st">&quot;8. Environment&quot;</span>, <span class="st">&quot;1.&quot;</span>)), <span class="fl">0.36</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
-<span id="cb76-8"><a href="#cb76-8" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr Trust mean&quot;</span>,            <span class="fu">gic</span>(s5_ic, <span class="st">&quot;1. Trust&quot;</span>, <span class="st">&quot;Mean&quot;</span>),            <span class="fl">74.12</span>, <span class="fl">0.3</span>, <span class="dv">2</span>),</span>
-<span id="cb76-9"><a href="#cb76-9" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr Environment mean&quot;</span>,      <span class="fu">gic</span>(s5_ic, <span class="st">&quot;8. Environment&quot;</span>, <span class="st">&quot;Mean&quot;</span>),       <span class="fl">0.59</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
-<span id="cb76-10"><a href="#cb76-10" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;By-cond sacred Trust mean&quot;</span>,       <span class="fu">gic</span>(s5_sac, <span class="st">&quot;1. Trust&quot;</span>, <span class="st">&quot;Mean&quot;</span>),           <span class="fl">80.27</span>, <span class="fl">0.3</span>, <span class="dv">2</span>),</span>
-<span id="cb76-11"><a href="#cb76-11" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;By-cond non-sacred Trust mean&quot;</span>,   <span class="fu">gic</span>(s5_non, <span class="st">&quot;1. Trust&quot;</span>, <span class="st">&quot;Mean&quot;</span>),           <span class="fl">68.14</span>, <span class="fl">0.3</span>, <span class="dv">2</span>),</span>
-<span id="cb76-12"><a href="#cb76-12" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Shapiro Trust W&quot;</span>,                 <span class="fu">shapiro_table</span>(s5, <span class="fu">c</span>(<span class="at">T=</span><span class="st">&quot;Trust_Att&quot;</span>))<span class="sc">$</span>W,      <span class="fl">0.95</span>, <span class="fl">0.01</span>, <span class="dv">2</span>),</span>
-<span id="cb76-13"><a href="#cb76-13" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Shapiro Harm W&quot;</span>,                  <span class="fu">shapiro_table</span>(s5, <span class="fu">c</span>(<span class="at">H=</span><span class="st">&quot;Never_Harm&quot;</span>))<span class="sc">$</span>W,     <span class="fl">0.80</span>, <span class="fl">0.01</span>, <span class="dv">2</span>),</span>
-<span id="cb76-14"><a href="#cb76-14" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric trust t&quot;</span>,              <span class="fu">s5_pm</span>(<span class="st">&quot;Trustworthiness&quot;</span>,<span class="st">&quot;t&quot;</span>),               <span class="fl">6.46</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
-<span id="cb76-15"><a href="#cb76-15" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric trust d&quot;</span>,              <span class="fu">s5_pm</span>(<span class="st">&quot;Trustworthiness&quot;</span>,<span class="st">&quot;d&quot;</span>),               <span class="fl">0.76</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb76-16"><a href="#cb76-16" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric acceptance t&quot;</span>,         <span class="fu">s5_pm</span>(<span class="st">&quot;Social acceptance&quot;</span>,<span class="st">&quot;t&quot;</span>),             <span class="fl">5.95</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
-<span id="cb76-17"><a href="#cb76-17" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric acceptance d&quot;</span>,         <span class="fu">s5_pm</span>(<span class="st">&quot;Social acceptance&quot;</span>,<span class="st">&quot;d&quot;</span>),             <span class="fl">0.70</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb76-18"><a href="#cb76-18" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric harm t&quot;</span>,               <span class="fu">s5_pm</span>(<span class="st">&quot;Harm sacralization&quot;</span>,<span class="st">&quot;t&quot;</span>),            <span class="fl">2.30</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
-<span id="cb76-19"><a href="#cb76-19" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric authority t (ns)&quot;</span>,     <span class="fu">s5_pm</span>(<span class="st">&quot;Authority sacralization&quot;</span>,<span class="st">&quot;t&quot;</span>),       <span class="fl">1.25</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
-<span id="cb76-20"><a href="#cb76-20" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Social conflict overall Z&quot;</span>,       <span class="fu">s5_cf</span>(<span class="st">&quot;Overall&quot;</span>,<span class="st">&quot;Z&quot;</span>),                       <span class="fl">2.55</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
-<span id="cb76-21"><a href="#cb76-21" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Social conflict friend Z&quot;</span>,        <span class="fu">s5_cf</span>(<span class="st">&quot;Close friend&quot;</span>,<span class="st">&quot;Z&quot;</span>),                  <span class="fl">3.87</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
-<span id="cb76-22"><a href="#cb76-22" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Demographics L2 cond B (approx.)&quot;</span>, <span class="fu">coef</span>(s5_L2)[<span class="st">&quot;cond&quot;</span>],                        <span class="cn">NA</span>, <span class="fl">0.3</span>, <span class="dv">2</span>),</span>
-<span id="cb76-23"><a href="#cb76-23" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Demographics L2 age B&quot;</span>,           <span class="fu">coef</span>(s5_L2)[<span class="st">&quot;age&quot;</span>],                         <span class="fl">0.29</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
-<span id="cb76-24"><a href="#cb76-24" tabindex="-1"></a>  <span class="co"># SI friendship-CE and overall-conflict ANOVA F&#39;s audit in their own chunks above; the</span></span>
-<span id="cb76-25"><a href="#cb76-25" tabindex="-1"></a>  <span class="co"># condition F is repeated here for the summary table.</span></span>
-<span id="cb76-26"><a href="#cb76-26" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Friendship-CE condition F&quot;</span>,       s5_fce<span class="sc">$</span>F[s5_fce<span class="sc">$</span>Term <span class="sc">==</span> <span class="st">&quot;cond&quot;</span>],          <span class="fl">21.46</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
-<span id="cb76-27"><a href="#cb76-27" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Friendship-CE group F&quot;</span>,           s5_fce<span class="sc">$</span>F[s5_fce<span class="sc">$</span>Term <span class="sc">==</span> <span class="st">&quot;ce&quot;</span>],             <span class="fl">3.27</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
-<span id="cb76-28"><a href="#cb76-28" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Friendship-CE interaction F&quot;</span>,     s5_fce<span class="sc">$</span>F[s5_fce<span class="sc">$</span>Term <span class="sc">==</span> <span class="st">&quot;cond:ce&quot;</span>],        <span class="fl">0.67</span>, <span class="fl">0.05</span>, <span class="dv">2</span>)</span>
-<span id="cb76-29"><a href="#cb76-29" tabindex="-1"></a>)</span>
-<span id="cb76-30"><a href="#cb76-30" tabindex="-1"></a><span class="fu">kable</span>(s5_si_audit, <span class="at">align =</span> <span class="st">&quot;lrrl&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" tabindex="-1"></a>r_num <span class="ot">&lt;-</span> <span class="cf">function</span>(cell) <span class="fu">as.numeric</span>(<span class="fu">sub</span>(<span class="st">&quot;[*]+$&quot;</span>, <span class="st">&quot;&quot;</span>, cell))</span>
+<span id="cb72-2"><a href="#cb72-2" tabindex="-1"></a>gic <span class="ot">&lt;-</span> <span class="cf">function</span>(tab, row, col) tab[[col]][tab<span class="sc">$</span>Variable <span class="sc">==</span> row]</span>
+<span id="cb72-3"><a href="#cb72-3" tabindex="-1"></a>s5_pm <span class="ot">&lt;-</span> <span class="cf">function</span>(v, c) s5_param[[c]][s5_param<span class="sc">$</span>Variable <span class="sc">==</span> v]</span>
+<span id="cb72-4"><a href="#cb72-4" tabindex="-1"></a>s5_cf <span class="ot">&lt;-</span> <span class="cf">function</span>(v, c) s5_conflict[[c]][s5_conflict<span class="sc">$</span>Outcome <span class="sc">==</span> v]</span>
+<span id="cb72-5"><a href="#cb72-5" tabindex="-1"></a>s5_si_audit <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(</span>
+<span id="cb72-6"><a href="#cb72-6" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr r(Trust, Social Acc.)&quot;</span>, <span class="fu">r_num</span>(<span class="fu">gic</span>(s5_ic, <span class="st">&quot;2. Social Acc.&quot;</span>, <span class="st">&quot;1.&quot;</span>)), <span class="fl">0.65</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
+<span id="cb72-7"><a href="#cb72-7" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr r(Trust, Environment)&quot;</span>, <span class="fu">r_num</span>(<span class="fu">gic</span>(s5_ic, <span class="st">&quot;8. Environment&quot;</span>, <span class="st">&quot;1.&quot;</span>)), <span class="fl">0.36</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
+<span id="cb72-8"><a href="#cb72-8" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr Trust mean&quot;</span>,            <span class="fu">gic</span>(s5_ic, <span class="st">&quot;1. Trust&quot;</span>, <span class="st">&quot;Mean&quot;</span>),            <span class="fl">74.12</span>, <span class="fl">0.3</span>, <span class="dv">2</span>),</span>
+<span id="cb72-9"><a href="#cb72-9" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Intercorr Environment mean&quot;</span>,      <span class="fu">gic</span>(s5_ic, <span class="st">&quot;8. Environment&quot;</span>, <span class="st">&quot;Mean&quot;</span>),       <span class="fl">0.59</span>, <span class="fl">0.02</span>, <span class="dv">2</span>),</span>
+<span id="cb72-10"><a href="#cb72-10" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;By-cond sacred Trust mean&quot;</span>,       <span class="fu">gic</span>(s5_sac, <span class="st">&quot;1. Trust&quot;</span>, <span class="st">&quot;Mean&quot;</span>),           <span class="fl">80.27</span>, <span class="fl">0.3</span>, <span class="dv">2</span>),</span>
+<span id="cb72-11"><a href="#cb72-11" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;By-cond non-sacred Trust mean&quot;</span>,   <span class="fu">gic</span>(s5_non, <span class="st">&quot;1. Trust&quot;</span>, <span class="st">&quot;Mean&quot;</span>),           <span class="fl">68.14</span>, <span class="fl">0.3</span>, <span class="dv">2</span>),</span>
+<span id="cb72-12"><a href="#cb72-12" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Shapiro Trust W&quot;</span>,                 <span class="fu">shapiro_table</span>(s5, <span class="fu">c</span>(<span class="at">T=</span><span class="st">&quot;Trust_Att&quot;</span>))<span class="sc">$</span>W,      <span class="fl">0.95</span>, <span class="fl">0.01</span>, <span class="dv">2</span>),</span>
+<span id="cb72-13"><a href="#cb72-13" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Shapiro Harm W&quot;</span>,                  <span class="fu">shapiro_table</span>(s5, <span class="fu">c</span>(<span class="at">H=</span><span class="st">&quot;Never_Harm&quot;</span>))<span class="sc">$</span>W,     <span class="fl">0.80</span>, <span class="fl">0.01</span>, <span class="dv">2</span>),</span>
+<span id="cb72-14"><a href="#cb72-14" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric trust t&quot;</span>,              <span class="fu">s5_pm</span>(<span class="st">&quot;Trustworthiness&quot;</span>,<span class="st">&quot;t&quot;</span>),               <span class="fl">6.46</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
+<span id="cb72-15"><a href="#cb72-15" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric trust d&quot;</span>,              <span class="fu">s5_pm</span>(<span class="st">&quot;Trustworthiness&quot;</span>,<span class="st">&quot;d&quot;</span>),               <span class="fl">0.76</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
+<span id="cb72-16"><a href="#cb72-16" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric acceptance t&quot;</span>,         <span class="fu">s5_pm</span>(<span class="st">&quot;Social acceptance&quot;</span>,<span class="st">&quot;t&quot;</span>),             <span class="fl">5.95</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
+<span id="cb72-17"><a href="#cb72-17" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric acceptance d&quot;</span>,         <span class="fu">s5_pm</span>(<span class="st">&quot;Social acceptance&quot;</span>,<span class="st">&quot;d&quot;</span>),             <span class="fl">0.70</span>, <span class="fl">0.03</span>, <span class="dv">2</span>),</span>
+<span id="cb72-18"><a href="#cb72-18" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric harm t&quot;</span>,               <span class="fu">s5_pm</span>(<span class="st">&quot;Harm sacralization&quot;</span>,<span class="st">&quot;t&quot;</span>),            <span class="fl">2.30</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
+<span id="cb72-19"><a href="#cb72-19" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Parametric authority t (ns)&quot;</span>,     <span class="fu">s5_pm</span>(<span class="st">&quot;Authority sacralization&quot;</span>,<span class="st">&quot;t&quot;</span>),       <span class="fl">1.25</span>, <span class="fl">0.1</span>, <span class="dv">2</span>),</span>
+<span id="cb72-20"><a href="#cb72-20" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Social conflict overall Z&quot;</span>,       <span class="fu">s5_cf</span>(<span class="st">&quot;Overall&quot;</span>,<span class="st">&quot;Z&quot;</span>),                       <span class="fl">2.55</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
+<span id="cb72-21"><a href="#cb72-21" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Social conflict friend Z&quot;</span>,        <span class="fu">s5_cf</span>(<span class="st">&quot;Close friend&quot;</span>,<span class="st">&quot;Z&quot;</span>),                  <span class="fl">3.87</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
+<span id="cb72-22"><a href="#cb72-22" tabindex="-1"></a>  <span class="co"># SI friendship-CE and overall-conflict ANOVA F&#39;s audit in their own chunks above; the</span></span>
+<span id="cb72-23"><a href="#cb72-23" tabindex="-1"></a>  <span class="co"># condition F is repeated here for the summary table.</span></span>
+<span id="cb72-24"><a href="#cb72-24" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Friendship-CE condition F&quot;</span>,       s5_fce<span class="sc">$</span>F[s5_fce<span class="sc">$</span>Term <span class="sc">==</span> <span class="st">&quot;cond&quot;</span>],          <span class="fl">21.46</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
+<span id="cb72-25"><a href="#cb72-25" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Friendship-CE group F&quot;</span>,           s5_fce<span class="sc">$</span>F[s5_fce<span class="sc">$</span>Term <span class="sc">==</span> <span class="st">&quot;ce&quot;</span>],             <span class="fl">3.27</span>, <span class="fl">0.05</span>, <span class="dv">2</span>),</span>
+<span id="cb72-26"><a href="#cb72-26" tabindex="-1"></a>  <span class="fu">audit_row</span>(<span class="st">&quot;Friendship-CE interaction F&quot;</span>,     s5_fce<span class="sc">$</span>F[s5_fce<span class="sc">$</span>Term <span class="sc">==</span> <span class="st">&quot;cond:ce&quot;</span>],        <span class="fl">0.67</span>, <span class="fl">0.05</span>, <span class="dv">2</span>)</span>
+<span id="cb72-27"><a href="#cb72-27" tabindex="-1"></a>)</span>
+<span id="cb72-28"><a href="#cb72-28" tabindex="-1"></a><span class="fu">kable</span>(s5_si_audit, <span class="at">align =</span> <span class="st">&quot;lrrl&quot;</span>)</span></code></pre></div>
 <table>
-<colgroup>
-<col width="45%" />
-<col width="15%" />
-<col width="12%" />
-<col width="26%" />
-</colgroup>
 <thead>
 <tr class="header">
 <th align="left">Quantity</th>
@@ -4832,18 +4803,6 @@ SI</h2>
 <td align="left">match</td>
 </tr>
 <tr class="odd">
-<td align="left">Demographics L2 cond B (approx.)</td>
-<td align="right">–</td>
-<td align="right">13.84</td>
-<td align="left">not stated in text</td>
-</tr>
-<tr class="even">
-<td align="left">Demographics L2 age B</td>
-<td align="right">0.29</td>
-<td align="right">0.26</td>
-<td align="left">match</td>
-</tr>
-<tr class="odd">
 <td align="left">Friendship-CE condition F</td>
 <td align="right">21.46</td>
 <td align="right">21.46</td>
@@ -4863,15 +4822,9 @@ SI</h2>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Note: the demographics-robustness B reproduces the SI&#39;s *qualitative* result (condition</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb77-2"><a href="#cb77-2" tabindex="-1"></a>    <span class="st">&quot;remains highly significant) but not its exact value: the SI&#39;s SPSS moderation model used a</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb77-3"><a href="#cb77-3" tabindex="-1"></a>    <span class="st">&quot;listwise-complete sample (df = 246) that the archive does not identify. That row is reported</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb77-4"><a href="#cb77-4" tabindex="-1"></a>    <span class="st">&quot;descriptively. The friendship-CE ANOVA is computed from the archived N = 288 sample</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb77-5"><a href="#cb77-5" tabindex="-1"></a>    <span class="st">&quot;(Type III), which this document reproduces exactly.</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="at">sep=</span><span class="st">&quot;&quot;</span>)</span></code></pre></div>
-<pre><code>## Note: the demographics-robustness B reproduces the SI&#39;s *qualitative* result (condition
-## remains highly significant) but not its exact value: the SI&#39;s SPSS moderation model used a
-## listwise-complete sample (df = 246) that the archive does not identify. That row is reported
-## descriptively. The friendship-CE ANOVA is computed from the archived N = 288 sample
+<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Note: the friendship-CE ANOVA is computed from the archived N = 288 sample</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb73-2"><a href="#cb73-2" tabindex="-1"></a>    <span class="st">&quot;(Type III), which this document reproduces exactly.</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="at">sep=</span><span class="st">&quot;&quot;</span>)</span></code></pre></div>
+<pre><code>## Note: the friendship-CE ANOVA is computed from the archived N = 288 sample
 ## (Type III), which this document reproduces exactly.</code></pre>
 <hr />
 </div>
@@ -4892,13 +4845,13 @@ directly. A sign flip between the zero-order <code>r_trust</code> and
 the partial <code>beta_partial</code> is the suppression tell behind the
 negative indirect effects; a VIF above ~5 would signal disabling
 collinearity.</p>
-<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">file.path</span>(<span class="fu">find_data_root</span>(<span class="at">marker =</span> <span class="st">&quot;scripts&quot;</span>), <span class="st">&quot;scripts&quot;</span>, <span class="st">&quot;R&quot;</span>, <span class="st">&quot;collinearity_helpers.R&quot;</span>))</span>
-<span id="cb79-2"><a href="#cb79-2" tabindex="-1"></a></span>
-<span id="cb79-3"><a href="#cb79-3" tabindex="-1"></a>s4_rw <span class="ot">&lt;-</span> <span class="fu">collinearity_table</span>(<span class="fu">as.data.frame</span>(s4), <span class="st">&quot;Trust_Att&quot;</span>,</span>
-<span id="cb79-4"><a href="#cb79-4" tabindex="-1"></a>                            <span class="fu">unname</span>(s4_meds), <span class="fu">names</span>(s4_meds), <span class="at">seed =</span> <span class="dv">2024</span><span class="dt">L</span>)</span>
-<span id="cb79-5"><a href="#cb79-5" tabindex="-1"></a><span class="fu">kable</span>(s4_rw, <span class="at">caption =</span> <span class="fu">sprintf</span>(</span>
-<span id="cb79-6"><a href="#cb79-6" tabindex="-1"></a>  <span class="st">&quot;Study 4: relative importance of the five foundations for trust ($R^2$ = %.3f). RW_pct = Johnson relative weight (%% of $R^2$); Dominance_pct = general dominance (%% of $R^2$); RW_lo/hi = bootstrap 95%% CI on the relative-weight share.&quot;</span>,</span>
-<span id="cb79-7"><a href="#cb79-7" tabindex="-1"></a>  <span class="fu">attr</span>(s4_rw, <span class="st">&quot;R2&quot;</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">file.path</span>(<span class="fu">find_data_root</span>(<span class="at">marker =</span> <span class="st">&quot;scripts&quot;</span>), <span class="st">&quot;scripts&quot;</span>, <span class="st">&quot;R&quot;</span>, <span class="st">&quot;collinearity_helpers.R&quot;</span>))</span>
+<span id="cb75-2"><a href="#cb75-2" tabindex="-1"></a></span>
+<span id="cb75-3"><a href="#cb75-3" tabindex="-1"></a>s4_rw <span class="ot">&lt;-</span> <span class="fu">collinearity_table</span>(<span class="fu">as.data.frame</span>(s4), <span class="st">&quot;Trust_Att&quot;</span>,</span>
+<span id="cb75-4"><a href="#cb75-4" tabindex="-1"></a>                            <span class="fu">unname</span>(s4_meds), <span class="fu">names</span>(s4_meds), <span class="at">seed =</span> <span class="dv">2024</span><span class="dt">L</span>)</span>
+<span id="cb75-5"><a href="#cb75-5" tabindex="-1"></a><span class="fu">kable</span>(s4_rw, <span class="at">caption =</span> <span class="fu">sprintf</span>(</span>
+<span id="cb75-6"><a href="#cb75-6" tabindex="-1"></a>  <span class="st">&quot;Study 4: relative importance of the five foundations for trust ($R^2$ = %.3f). RW_pct = Johnson relative weight (%% of $R^2$); Dominance_pct = general dominance (%% of $R^2$); RW_lo/hi = bootstrap 95%% CI on the relative-weight share.&quot;</span>,</span>
+<span id="cb75-7"><a href="#cb75-7" tabindex="-1"></a>  <span class="fu">attr</span>(s4_rw, <span class="st">&quot;R2&quot;</span>)))</span></code></pre></div>
 <table>
 <caption>Study 4: relative importance of the five foundations for trust
 (<span class="math inline">\(R^2\)</span> = 0.298). RW_pct = Johnson
@@ -4987,11 +4940,11 @@ relative-weight share.</caption>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" tabindex="-1"></a>s5_rw <span class="ot">&lt;-</span> <span class="fu">collinearity_table</span>(<span class="fu">as.data.frame</span>(s5), <span class="st">&quot;Trust_Att&quot;</span>,</span>
-<span id="cb80-2"><a href="#cb80-2" tabindex="-1"></a>                            <span class="fu">unname</span>(s5_meds), <span class="fu">names</span>(s5_meds), <span class="at">seed =</span> <span class="dv">2024</span><span class="dt">L</span>)</span>
-<span id="cb80-3"><a href="#cb80-3" tabindex="-1"></a><span class="fu">kable</span>(s5_rw, <span class="at">caption =</span> <span class="fu">sprintf</span>(</span>
-<span id="cb80-4"><a href="#cb80-4" tabindex="-1"></a>  <span class="st">&quot;Study 5: relative importance of the five foundations for trust ($R^2$ = %.3f). Columns as above.&quot;</span>,</span>
-<span id="cb80-5"><a href="#cb80-5" tabindex="-1"></a>  <span class="fu">attr</span>(s5_rw, <span class="st">&quot;R2&quot;</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" tabindex="-1"></a>s5_rw <span class="ot">&lt;-</span> <span class="fu">collinearity_table</span>(<span class="fu">as.data.frame</span>(s5), <span class="st">&quot;Trust_Att&quot;</span>,</span>
+<span id="cb76-2"><a href="#cb76-2" tabindex="-1"></a>                            <span class="fu">unname</span>(s5_meds), <span class="fu">names</span>(s5_meds), <span class="at">seed =</span> <span class="dv">2024</span><span class="dt">L</span>)</span>
+<span id="cb76-3"><a href="#cb76-3" tabindex="-1"></a><span class="fu">kable</span>(s5_rw, <span class="at">caption =</span> <span class="fu">sprintf</span>(</span>
+<span id="cb76-4"><a href="#cb76-4" tabindex="-1"></a>  <span class="st">&quot;Study 5: relative importance of the five foundations for trust ($R^2$ = %.3f). Columns as above.&quot;</span>,</span>
+<span id="cb76-5"><a href="#cb76-5" tabindex="-1"></a>  <span class="fu">attr</span>(s5_rw, <span class="st">&quot;R2&quot;</span>)))</span></code></pre></div>
 <table>
 <caption>Study 5: relative importance of the five foundations for trust
 (<span class="math inline">\(R^2\)</span> = 0.142). Columns as
@@ -5089,7 +5042,7 @@ is moderate, not disabling.</p>
 </div>
 <div id="audit-summary" class="section level1" number="6">
 <h1><span class="header-section-number">6</span> Audit summary</h1>
-<pre><code>## Audited claims: 58 | match: 56 | close (bootstrap/rounding noise): 0 | DIFFERS: 0</code></pre>
+<pre><code>## Audited claims: 56 | match: 55 | close (bootstrap/rounding noise): 0 | DIFFERS: 0</code></pre>
 <p><strong>Reading the result.</strong> The competing-mediator point
 estimates reproduce the manuscript to two decimals (Study 4: Harm 4.46,
 Fairness 4.34; Study 5: Harm 1.24); the bootstrap CIs sit within noise

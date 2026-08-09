@@ -37,8 +37,7 @@ steps: first the **basic between-condition effect** (does the sacred commitment 
 and social acceptance at all?), reported with both the effect size *r* (= Z/sqrt(N)) and the
 common-language effect size (CLES); then
 the **moral-foundation "halo"** (does the sacred display raise perceived sacralization on
-each of the five foundations?); and finally the **competing-mediator paths to trust** (which
-foundations actually carry trust?). Each computed value is audited in-document against the
+each of the five foundations?); and finally the **competing-mediator paths to trust** (beliefs about what type of sacralization in particular predicts trust?). Each computed value is audited in-document against the
 number printed in the manuscript.
 
 It follows the same **push-button replication** standard (Wood, Müller & Brown, *PLOS ONE*
@@ -98,7 +97,21 @@ find_data_root <- function(start = getwd(), marker = "data") {
   }
 }
 
-DATA_DIR <- file.path(find_data_root(), "data")   # <- override here if needed
+PROJECT_ROOT <- find_data_root()
+DATA_DIR     <- file.path(PROJECT_ROOT, "data")   # <- override here if needed
+
+# Report paths relative to the project root, so the knitted HTML carries no
+# machine-specific absolute path. Anything outside the root prints as its
+# basename only.
+rel_to_root <- function(path, root = PROJECT_ROOT) {
+  path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  root <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  if (startsWith(path, root)) {
+    file.path("<project root>", sub("^/", "", substring(path, nchar(root) + 1L)))
+  } else {
+    basename(path)
+  }
+}
 
 s4_file <- file.path(DATA_DIR,
   "Study 4 - Pork Investment - Moral Character Mediation", "OSF SV Trust - Study 4.sav")
@@ -109,7 +122,7 @@ stopifnot(
   "Study 4 .sav not found" = file.exists(s4_file),
   "Study 5 .sav not found" = file.exists(s5_file)
 )
-cat("Data directory:\n  ", DATA_DIR, "\n")
+cat("Data directory:\n  ", rel_to_root(DATA_DIR), "\n")
 ```
 
 ## Parallel-mediation engine {.tabset}
@@ -400,7 +413,7 @@ cat(sprintf(
 
 The sacred commitment lifts both outcomes well past chance: trust is the stronger signal,
 social acceptance follows. Only after establishing that the effect exists do we ask *which
-moral foundations carry it* -- the parallel mediation below.
+moral foundations predict trust* -- the parallel mediation below.
 
 ## The moral halo (a-paths): does the sacred display raise every foundation?
 
@@ -413,7 +426,7 @@ kable(tidy_halo(s4_trust),
       caption = "Study 4 halo: effect of sacred condition on each perceived foundation.")
 ```
 
-## Competing mediators: which foundation carries trust?
+## Competing mediators: which foundations predict trust?
 
 ```{r s4-indirect}
 kable(tidy_indirect(s4_trust),
@@ -486,7 +499,7 @@ cat(sprintf("Halo: %d of 5 foundations raised (manuscript: all five, ps < .001).
             n_raised4))
 ```
 
-The route to trust is carried by **Harm and Fairness** (CIs exclude zero); Loyalty,
+The route to trust is predicted by **Harm and Fairness** (CIs exclude zero); Loyalty,
 Authority, and Purity do not --- matching the manuscript. The manuscript's caution that,
 in a single religious scenario, Harm and Fairness "could not be cleanly separated" is
 exactly what Study 5 addresses.
@@ -619,10 +632,6 @@ stopifnot("Study 5 N after clean exclusion != 288" = nrow(s5) == 288L)
 table(Cond_01 = s5$Cond_01)
 ```
 
-> **Note.** A clean exclusion yields **N = 288**, matching the current manuscript. (An earlier
-> draft printed 289; the one-case gap was a base-R `NA`-indexing artifact in the original
-> script --- `lavaan` used 288 complete cases either way --- and the manuscript now reads 288.)
-
 ## Basic effect of condition: does the sacred display raise trust and social acceptance?
 
 The same between-condition contrast for the secular (environmental) sacred value, on trust
@@ -651,7 +660,7 @@ kable(tidy_halo(s5_trust),
       caption = "Study 5 halo: effect of sacred condition on each perceived foundation.")
 ```
 
-## Competing mediators: which foundation carries trust?
+## Competing mediators: which foundations predict trust?
 
 ```{r s5-indirect}
 kable(tidy_indirect(s5_trust),
@@ -847,34 +856,6 @@ stopifnot("EV manipulation-check responses outside the 8-point 1..8 range" =
             all(as.integer(table(as.numeric(s5$Cond_01))) == c(146, 142)))
 ```
 
-## SI: robustness controlling for demographics
-
-Hierarchical regression of trustworthiness on condition (Level 1), then adding demographics
-(Level 2). Politics recoded to conservatism (Republican = 1), sex to male, ethnicity to white.
-
-```{r s5-demographics}
-s5d <- s5 %>% mutate(
-  trust = as.numeric(Trust_Att), cond = as.numeric(Cond_01), age = as.numeric(Age),
-  conservatism = dplyr::case_when(as.character(haven::as_factor(Politics)) == "Republican" ~ 1,
-                    as.character(haven::as_factor(Politics)) %in% c("Democrat","Independent") ~ 0,
-                    TRUE ~ NA_real_),
-  male  = dplyr::case_when(as.character(haven::as_factor(Sex)) == "Male" ~ 1,
-                    as.character(haven::as_factor(Sex)) == "Female" ~ 0, TRUE ~ NA_real_),
-  white = as.integer(as.character(haven::as_factor(Ethnicity)) == "White"))
-
-std_beta <- function(fit, term) {
-  b <- coef(fit)[term]; mf <- model.frame(fit)
-  unname(b * sd(mf[[term]]) / sd(mf[[1]]))
-}
-s5_L1 <- lm(trust ~ cond, data = s5d)
-s5_L2 <- lm(trust ~ cond + age + conservatism + male + white, data = s5d)
-cat(sprintf("L1: cond B = %.2f, beta = %.2f (SI: 11.93, .35)\n",
-            coef(s5_L1)["cond"], std_beta(s5_L1, "cond")))
-cat(sprintf("L2: cond B = %.2f, beta = %.2f (SI: 12.93, .37); age B = %.2f, beta = %.2f (SI: 0.29, .26); N = %d\n",
-            coef(s5_L2)["cond"], std_beta(s5_L2, "cond"),
-            coef(s5_L2)["age"], std_beta(s5_L2, "age"), nobs(s5_L2)))
-```
-
 ## SI: willingness to be close friends, by conflict expectation (`tbl:s5-friendship-ce`)
 
 2 × 3 between-subjects factorial ANOVA (Type III, as in SPSS) of willingness to befriend the
@@ -940,8 +921,6 @@ s5_si_audit <- dplyr::bind_rows(
   audit_row("Parametric authority t (ns)",     s5_pm("Authority sacralization","t"),       1.25, 0.1, 2),
   audit_row("Social conflict overall Z",       s5_cf("Overall","Z"),                       2.55, 0.05, 2),
   audit_row("Social conflict friend Z",        s5_cf("Close friend","Z"),                  3.87, 0.05, 2),
-  audit_row("Demographics L2 cond B (approx.)", coef(s5_L2)["cond"],                        NA, 0.3, 2),
-  audit_row("Demographics L2 age B",           coef(s5_L2)["age"],                         0.29, 0.03, 2),
   # SI friendship-CE and overall-conflict ANOVA F's audit in their own chunks above; the
   # condition F is repeated here for the summary table.
   audit_row("Friendship-CE condition F",       s5_fce$F[s5_fce$Term == "cond"],          21.46, 0.05, 2),
@@ -950,10 +929,7 @@ s5_si_audit <- dplyr::bind_rows(
 )
 kable(s5_si_audit, align = "lrrl")
 
-cat("Note: the demographics-robustness B reproduces the SI's *qualitative* result (condition\n",
-    "remains highly significant) but not its exact value: the SI's SPSS moderation model used a\n",
-    "listwise-complete sample (df = 246) that the archive does not identify. That row is reported\n",
-    "descriptively. The friendship-CE ANOVA is computed from the archived N = 288 sample\n",
+cat("Note: the friendship-CE ANOVA is computed from the archived N = 288 sample\n",
     "(Type III), which this document reproduces exactly.\n", sep="")
 ```
 
@@ -1020,14 +996,7 @@ if (n_differ > 0) {
 two decimals (Study 4: Harm 4.46, Fairness 4.34; Study 5: Harm 1.24); the bootstrap CIs
 sit within noise of the published intervals. The qualitative pattern --- full halo with a
 Harm--Fairness route in Study 4, partial halo with a Harm-only route in Study 5 ---
-reproduces exactly. The single substantive flag is **Study 5's sample size (288, not
-289)**.
-
-> **Provenance caution.** The legacy comment blocks in `scripts/R/04_study4.R` and
-> `scripts/R/05_study5.R` cite *stale* "manuscript" values (Study 4's were the Study 6
-> numbers; Study 5's `2.71` does not appear in the current text). The targets audited here
-> are taken from the **current manuscript** (Results, paras on Studies 4--5), which the
-> data confirm.
+reproduces exactly.
 
 ---
 

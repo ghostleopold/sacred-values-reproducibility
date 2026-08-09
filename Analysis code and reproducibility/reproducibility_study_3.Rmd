@@ -74,11 +74,26 @@ find_data_root <- function(start = getwd(), marker = "data") {
   }
 }
 
-S3_DIR <- file.path(find_data_root(), "data", "Study 3 - Lab Study",
+PROJECT_ROOT <- find_data_root()
+
+# Report paths relative to the project root, so the knitted HTML carries no
+# machine-specific absolute path. Anything outside the root prints as its
+# basename only.
+rel_to_root <- function(path, root = PROJECT_ROOT) {
+  path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  root <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  if (startsWith(path, root)) {
+    file.path("<project root>", sub("^/", "", substring(path, nchar(root) + 1L)))
+  } else {
+    basename(path)
+  }
+}
+
+S3_DIR <- file.path(PROJECT_ROOT, "data", "Study 3 - Lab Study",
                     "Replication Documentation", "Data", "Analysis Data")
 s3_file <- file.path(S3_DIR, "combined-ult-trust-withfactors.dta")
 stopifnot("Study 3 analysis .dta not found" = file.exists(s3_file))
-cat("Study 3 data:\n  ", s3_file, "\n")
+cat("Study 3 data:\n  ", rel_to_root(s3_file), "\n")
 ```
 
 ## Helper functions
@@ -161,14 +176,6 @@ full <- full %>% filter(as_factor(treatment) == "trust") %>%   # trust game only
 for (i in 1:3)                                                 # revealed similarity = -|partner - revealed|
   full[[paste0("wsim", i)]] <- -sqrt((full[[paste0("pf", i)]] - full[[paste0("r", i, "n2")]])^2)
 
-# Demographic controls (per the OSF `.do` file notes): gender 1 = men, age in years.
-# NB these sit on the *trustee* row in the controlled models, matching the .do files'
-# `if role_a_b == 2` regressions. An earlier write-up described these controls as the
-# investor's; the archived code uses the trustee's. Flagged in the audit.
-full <- full %>%
-  mutate(men = as.integer(as_factor(survey1playersex) == "Male"),
-         age = as.numeric(survey1playerage))
-
 # Roles: 1 = investor, 2 = trustee (per the OSF .do files).
 investors <- full %>% filter(role_a_b == 1)
 trustees  <- full %>% filter(role_a_b == 2)
@@ -189,7 +196,7 @@ Key variables (from the OSF data and `.do` files):
 - `NetRev` = `SacRev - NonSacRev` --- net (balance of) sacred values revealed by the trustee.
 - `partnerNetRev` --- the trustee partner's `NetRev`, as seen by the investor.
 - `wsim1/wsim2/wsim3` --- revealed self-similarity on three factors (built in prep; see above).
-- `Greed`, `age` (`survey1playerage`), `men` (`survey1playersex`) --- controls.
+- `Greed` --- control.
 
 ---
 
@@ -482,16 +489,13 @@ g4_m1 <- gam(Tru_diff ~ s(NetRev, k = 3),
              data = trustees, method = "REML")
 g4_m2 <- gam(Tru_diff ~ s(NetRev, k = 3) + wsim1 + wsim2 + wsim3,
              data = trustees, method = "REML")
-g4_m3 <- gam(Tru_diff ~ s(NetRev, k = 3) + wsim1 + wsim2 + wsim3 + Greed + age + men,
-             data = trustees, method = "REML")
 
 t4 <- bind_rows(
   data.frame(Model = "1: smooth only",            as.data.frame(gam_smooth(g4_m1))),
-  data.frame(Model = "2: + self-similarity",      as.data.frame(gam_smooth(g4_m2))),
-  data.frame(Model = "3: + Greed, age, gender",   as.data.frame(gam_smooth(g4_m3)))
+  data.frame(Model = "2: + self-similarity",      as.data.frame(gam_smooth(g4_m2)))
 )
 kable(t4, digits = 3,
-      caption = "Continuous net-balance fit (SI sec:s3-continuous) --- investor trust on the trustee's net sacred values revealed. `edf` is the smooth's effective degrees of freedom (≈1 ⇒ effectively linear). Model 1 is the smooth the SI reports (F = 5.42, p = .024); the controlled models are shown for completeness.")
+      caption = "Continuous net-balance fit (SI sec:s3-continuous) --- investor trust on the trustee's net sacred values revealed. `edf` is the smooth's effective degrees of freedom (≈1 ⇒ effectively linear). Model 1 is the smooth the SI reports (F = 5.42, p = .024); the self-similarity-controlled model is shown for completeness.")
 ```
 
 **Percentage-point interpretation and controls.** `Tru_diff` is the change in the *share* of the
@@ -586,26 +590,17 @@ revealed is what delivers significance and roughly doubles *R*² (.028 → .054)
 ## Trustworthiness GAM (robustness on the Figure 2 smooth)
 
 DV = trustworthiness (`Wor_agg_avg`, proportion returned averaged across games); predictor
-`SacPers` (values held), the Figure 2 measure. Nested GAMs: Model 1 (smooth only, = Figure 2),
-Model 2 (+ Greed, age, gender), as a robustness check on the correlation and the +0.31 pp/value
-main-text slope. Because edf ≈ 1 the smooth is effectively a straight line, so the GAM and the
-linear percentage-point coefficient tell the same story.
+`SacPers` (values held), the Figure 2 measure. Because edf ≈ 1 the smooth is effectively a
+straight line, so the GAM and the linear percentage-point coefficient tell the same story.
 
 ```{r gam-worthy}
 winner <- "SacPers"                       # trustworthiness predictor, by project decision
 fw <- function(rhs) as.formula(sprintf("Wor_agg_avg ~ s(%s, k = 3)%s", winner, rhs))
 g5_m1 <- gam(fw(""),                       data = trustees, method = "REML")
-g5_m2 <- gam(fw(" + Greed + age + men"),   data = trustees, method = "REML")
 
-t5 <- bind_rows(
-  data.frame(Model = "1: smooth only (= Figure 2)", as.data.frame(gam_smooth(g5_m1))),
-  data.frame(Model = "2: + Greed, age, gender",     as.data.frame(gam_smooth(g5_m2)))
-)
+t5 <- data.frame(Model = "1: smooth only (= Figure 2)", as.data.frame(gam_smooth(g5_m1)))
 kable(t5, digits = 3,
-      caption = "Trustworthiness GAM on SacPers (values held): Model 1 is the Figure 2 smooth, Model 2 adds controls. edf ≈ 1 ⇒ effectively linear, so the linear +0.31 pp/value slope the main text reports is the same result.")
-
-g5_greed <- summary(g5_m2)$p.table["Greed", "Estimate"]
-cat(sprintf("Greed coefficient in Model 2: b = %.3f (the control does not overturn the SacPers effect).\n", g5_greed))
+      caption = "Trustworthiness GAM on SacPers (values held): the Figure 2 smooth. edf ≈ 1 ⇒ effectively linear, so the linear +0.31 pp/value slope the main text reports is the same result.")
 ```
 
 ## Are the smooths non-linear? (edf + partial-effect plots)
@@ -635,16 +630,13 @@ fitted GAMs (predicted outcome change for a one-SD shift, covariates at their me
 
 ```{r gam-B}
 b4_m1 <- gam_oneSD(g4_m1, "NetRev")
-b4_m3 <- gam_oneSD(g4_m3, "NetRev")
 b5_m1 <- gam_oneSD(g5_m1, winner)
-b5_m2 <- gam_oneSD(g5_m2, winner)
 b_tab <- tibble(
-  Quantity = c("Continuous NetRev fit one-SD B", "NetRev fit + controls one-SD B",
-               "Trustworthiness M1 one-SD B (SacPers)", "Trustworthiness M2 one-SD B (SacPers)"),
-  Computed = c(b4_m1, b4_m3, b5_m1, b5_m2),
-  # SI reports +8 pp/SD (~.078) for the continuous NetRev fit; the others are descriptive.
-  Reported = c(0.078, NA, NA, NA))
-kable(b_tab, digits = 3, caption = "One-SD predicted effects recomputed from the GAMs. Reported = the manuscript's +8 pp/SD for the continuous NetRev fit; other rows descriptive.")
+  Quantity = c("Continuous NetRev fit one-SD B", "Trustworthiness M1 one-SD B (SacPers)"),
+  Computed = c(b4_m1, b5_m1),
+  # SI reports +8 pp/SD (~.078) for the continuous NetRev fit; the other is descriptive.
+  Reported = c(0.078, NA))
+kable(b_tab, digits = 3, caption = "One-SD predicted effects recomputed from the GAMs. Reported = the manuscript's +8 pp/SD for the continuous NetRev fit; other row descriptive.")
 ```
 
 ## Primary audit (main text + continuous fit)

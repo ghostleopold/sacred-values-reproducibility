@@ -1787,19 +1787,33 @@ the chunk below.</p>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  }</span>
 <span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>}</span>
 <span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>DATA_DIR <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">find_data_root</span>(), <span class="st">&quot;data&quot;</span>)   <span class="co"># &lt;- override here if needed</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>s1_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR, <span class="st">&quot;Study 1 - Sacred Ring&quot;</span>,    <span class="st">&quot;OSF SV Trust - Study 1.sav&quot;</span>)</span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>s2_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR, <span class="st">&quot;Study 2 - Pork Investment&quot;</span>, <span class="st">&quot;OSF SV Trust - Study 2.sav&quot;</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># Fail early and clearly if the data are not where we expect.</span></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="fu">stopifnot</span>(</span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  <span class="st">&quot;Study 1 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s1_file),</span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  <span class="st">&quot;Study 2 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s2_file)</span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>)</span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Data directory:</span><span class="sc">\n</span><span class="st">  &quot;</span>, DATA_DIR, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>PROJECT_ROOT <span class="ot">&lt;-</span> <span class="fu">find_data_root</span>()</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>DATA_DIR     <span class="ot">&lt;-</span> <span class="fu">file.path</span>(PROJECT_ROOT, <span class="st">&quot;data&quot;</span>)   <span class="co"># &lt;- override here if needed</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co"># Report paths relative to the project root, so the knitted HTML carries no</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co"># machine-specific absolute path. Anything outside the root prints as its</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># basename only.</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>rel_to_root <span class="ot">&lt;-</span> <span class="cf">function</span>(path, <span class="at">root =</span> PROJECT_ROOT) {</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  path <span class="ot">&lt;-</span> <span class="fu">normalizePath</span>(path, <span class="at">winslash =</span> <span class="st">&quot;/&quot;</span>, <span class="at">mustWork =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  root <span class="ot">&lt;-</span> <span class="fu">normalizePath</span>(root, <span class="at">winslash =</span> <span class="st">&quot;/&quot;</span>, <span class="at">mustWork =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">startsWith</span>(path, root)) {</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>    <span class="fu">file.path</span>(<span class="st">&quot;&lt;project root&gt;&quot;</span>, <span class="fu">sub</span>(<span class="st">&quot;^/&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="fu">substring</span>(path, <span class="fu">nchar</span>(root) <span class="sc">+</span> <span class="dv">1</span><span class="dt">L</span>)))</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>    <span class="fu">basename</span>(path)</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>  }</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>}</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>s1_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR, <span class="st">&quot;Study 1 - Sacred Ring&quot;</span>,    <span class="st">&quot;OSF SV Trust - Study 1.sav&quot;</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>s2_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(DATA_DIR, <span class="st">&quot;Study 2 - Pork Investment&quot;</span>, <span class="st">&quot;OSF SV Trust - Study 2.sav&quot;</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a><span class="co"># Fail early and clearly if the data are not where we expect.</span></span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a><span class="fu">stopifnot</span>(</span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>  <span class="st">&quot;Study 1 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s1_file),</span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>  <span class="st">&quot;Study 2 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s2_file)</span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>)</span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Data directory:</span><span class="sc">\n</span><span class="st">  &quot;</span>, <span class="fu">rel_to_root</span>(DATA_DIR), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Data directory:
-##    /Users/thandfie/Library/CloudStorage/Dropbox/Toby-Ji-shared-folder/Sacred Values Experiment/paper/PNAS version/sacred-values-reproducibility/data</code></pre>
+##    &lt;project root&gt;/data</code></pre>
 </div>
 <div id="statistical-helper-functions" class="section level2 tabset" number="2.2">
 <h2 class="tabset"><span class="header-section-number">2.2</span>
