@@ -91,7 +91,21 @@ find_data_root <- function(start = getwd(), marker = "data") {
   }
 }
 
-DATA_DIR <- file.path(find_data_root(), "data")   # <- override here if needed
+PROJECT_ROOT <- find_data_root()
+DATA_DIR     <- file.path(PROJECT_ROOT, "data")   # <- override here if needed
+
+# Report paths relative to the project root, so the knitted HTML carries no
+# machine-specific absolute path. Anything outside the root prints as its
+# basename only.
+rel_to_root <- function(path, root = PROJECT_ROOT) {
+  path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  root <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  if (startsWith(path, root)) {
+    file.path("<project root>", sub("^/", "", substring(path, nchar(root) + 1L)))
+  } else {
+    basename(path)
+  }
+}
 
 s1_file <- file.path(DATA_DIR, "Study 1 - Sacred Ring",    "OSF SV Trust - Study 1.sav")
 s2_file <- file.path(DATA_DIR, "Study 2 - Pork Investment", "OSF SV Trust - Study 2.sav")
@@ -101,7 +115,7 @@ stopifnot(
   "Study 1 .sav not found" = file.exists(s1_file),
   "Study 2 .sav not found" = file.exists(s2_file)
 )
-cat("Data directory:\n  ", DATA_DIR, "\n")
+cat("Data directory:\n  ", rel_to_root(DATA_DIR), "\n")
 ```
 
 ## Statistical helper functions {.tabset}

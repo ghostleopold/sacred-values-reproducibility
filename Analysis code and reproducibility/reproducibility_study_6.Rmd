@@ -68,10 +68,25 @@ find_data_root <- function(start = getwd(), marker = "data") {
     d <- parent
   }
 }
-s6_file <- file.path(find_data_root(), "data", "Study 6 - Sacralization of Moral Foundations",
+PROJECT_ROOT <- find_data_root()
+
+# Report paths relative to the project root, so the knitted HTML carries no
+# machine-specific absolute path. Anything outside the root prints as its
+# basename only.
+rel_to_root <- function(path, root = PROJECT_ROOT) {
+  path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  root <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  if (startsWith(path, root)) {
+    file.path("<project root>", sub("^/", "", substring(path, nchar(root) + 1L)))
+  } else {
+    basename(path)
+  }
+}
+
+s6_file <- file.path(PROJECT_ROOT, "data", "Study 6 - Sacralization of Moral Foundations",
                      "OSF SV Trust - Study 6 Long Dataset.sav")
 stopifnot("Study 6 .sav not found" = file.exists(s6_file))
-cat("Study 6 data:\n  ", s6_file, "\n")
+cat("Study 6 data:\n  ", rel_to_root(s6_file), "\n")
 ```
 
 ## Helper functions

@@ -1729,12 +1729,27 @@ function.</p>
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    d <span class="ot">&lt;-</span> parent</span>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  }</span>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>}</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>s6_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">find_data_root</span>(), <span class="st">&quot;data&quot;</span>, <span class="st">&quot;Study 6 - Sacralization of Moral Foundations&quot;</span>,</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>                     <span class="st">&quot;OSF SV Trust - Study 6 Long Dataset.sav&quot;</span>)</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="st">&quot;Study 6 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s6_file))</span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Study 6 data:</span><span class="sc">\n</span><span class="st">  &quot;</span>, s6_file, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>PROJECT_ROOT <span class="ot">&lt;-</span> <span class="fu">find_data_root</span>()</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># Report paths relative to the project root, so the knitted HTML carries no</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co"># machine-specific absolute path. Anything outside the root prints as its</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co"># basename only.</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>rel_to_root <span class="ot">&lt;-</span> <span class="cf">function</span>(path, <span class="at">root =</span> PROJECT_ROOT) {</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  path <span class="ot">&lt;-</span> <span class="fu">normalizePath</span>(path, <span class="at">winslash =</span> <span class="st">&quot;/&quot;</span>, <span class="at">mustWork =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  root <span class="ot">&lt;-</span> <span class="fu">normalizePath</span>(root, <span class="at">winslash =</span> <span class="st">&quot;/&quot;</span>, <span class="at">mustWork =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">startsWith</span>(path, root)) {</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>    <span class="fu">file.path</span>(<span class="st">&quot;&lt;project root&gt;&quot;</span>, <span class="fu">sub</span>(<span class="st">&quot;^/&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="fu">substring</span>(path, <span class="fu">nchar</span>(root) <span class="sc">+</span> <span class="dv">1</span><span class="dt">L</span>)))</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>    <span class="fu">basename</span>(path)</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  }</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>}</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>s6_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(PROJECT_ROOT, <span class="st">&quot;data&quot;</span>, <span class="st">&quot;Study 6 - Sacralization of Moral Foundations&quot;</span>,</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>                     <span class="st">&quot;OSF SV Trust - Study 6 Long Dataset.sav&quot;</span>)</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="st">&quot;Study 6 .sav not found&quot;</span> <span class="ot">=</span> <span class="fu">file.exists</span>(s6_file))</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Study 6 data:</span><span class="sc">\n</span><span class="st">  &quot;</span>, <span class="fu">rel_to_root</span>(s6_file), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Study 6 data:
-##    /Users/thandfie/Library/CloudStorage/Dropbox/Toby-Ji-shared-folder/Sacred Values Experiment/paper/PNAS version/sacred-values-reproducibility/data/Study 6 - Sacralization of Moral Foundations/OSF SV Trust - Study 6 Long Dataset.sav</code></pre>
+##    &lt;project root&gt;/data/Study 6 - Sacralization of Moral Foundations/OSF SV Trust - Study 6 Long Dataset.sav</code></pre>
 <div id="helper-functions" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Helper functions</h2>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Five foundations -&gt; their perceived-sacralization columns</span></span>
