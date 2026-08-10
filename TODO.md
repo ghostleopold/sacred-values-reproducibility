@@ -20,21 +20,25 @@ consolidation — see below), so this edit is Dropbox-backed even though it's
 still outside git; the earlier "only exists on disk in Downloads" risk no
 longer applies.
 
-**Remaining steps:**
+**Done (2026-08-10):**
 
-1. [ ] Run the edited `.do` file in Stata; record the new group means and
-       ranksum z/p for all three religiosity splits (affiliation, belief in
-       God, religion-is-sacred).
-2. [ ] Revise SI table `s3-religiosity` in `SI.md` (main PNAS repo) with the
-       confirmed `Wor_agg_avg` figures, and update the row label from
-       "Trustworthiness in initial game" to something reflecting the
-       both-games measure (e.g. "Trustworthiness (both games, averaged)").
-3. [ ] Once (1)-(2) are confirmed, update `reproducibility_study_3.Rmd`'s
-       `si-religiosity` chunk: drop the reconstructed-`Wor_pre` block, compute
-       the `Trustworthy` column from `Wor_agg_avg` (trustee-restricted, as the
-       `Trust received` column already is) instead, and rewrite the
-       "Descriptive flag" callout to report full, unqualified reproduction
-       rather than a resolved-but-noteworthy residual.
+1. [x] Ran the edited `.do` file in Stata; recorded the new group means for all
+       three religiosity splits (affiliation, belief in God, religion-is-sacred).
+2. [x] Revised SI table `s3-religiosity` in `SI.md` with the confirmed
+       `Wor_agg_avg` figures, relabelled the row "Trustworthiness over both
+       phases", and split the *N* row into "N (all participants)" / "N
+       (trustees)" — the trustworthiness and trust-received rows are
+       trustee-restricted (121), the sacred-values row is not (242), so one *N*
+       row could not serve both. Caption now says so.
+3. [x] Updated `reproducibility_study_3.Rmd`'s `si-religiosity` chunk: dropped
+       the reconstructed-`Wor_pre` block, computed `Trustworthy (both)` from
+       `Wor_agg_avg` (trustee-restricted), added the second *N* column, and
+       replaced the "Descriptive flag" callout with an unqualified
+       reproduction note. All 30 table cells match the revised SI; audit
+       unchanged at 37 claims / 0 DIFFERS.
+
+**Still to do:** re-upload the archive to OSF (`scripts/osf_upload.sh` in the
+manuscript repo) so the published `.do` file and rendered notebook match.
 
 ## Data consolidation (done 2026-08-09)
 
