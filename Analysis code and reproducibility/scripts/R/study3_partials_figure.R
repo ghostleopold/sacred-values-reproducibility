@@ -48,13 +48,14 @@ find_root <- function(start = getwd(), marker = "data") {
 REPO    <- find_root()
 CODE    <- find_root(marker = "scripts")
 S3_DIR  <- file.path(REPO, "data", "Study 3 - Lab Study",
-                     "Replication Documentation", "Processing and Analysis", "Analysis Data")
+                     "Replication Documentation", "Data", "Analysis Data")
 s3_file <- file.path(S3_DIR, "combined-ult-trust-withfactors.dta")
 stopifnot("Study 3 analysis .dta not found" = file.exists(s3_file))
 
 OUT_DIR <- file.path(CODE, "scripts", "R", "_outputs")
 FIG_DIR <- file.path(CODE, "Figures")
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
+dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
 out_png <- file.path(OUT_DIR, "study3_partials_figure.png")
 out_pdf <- file.path(FIG_DIR, "study3_trustgame_partials.pdf")
 

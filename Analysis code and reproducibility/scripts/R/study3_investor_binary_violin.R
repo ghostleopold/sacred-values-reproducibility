@@ -40,7 +40,7 @@ find_root <- function(start = getwd(), marker = "data") {
 }
 REPO    <- find_root()
 S3_DIR  <- file.path(REPO, "data", "Study 3 - Lab Study",
-                     "Replication Documentation", "Processing and Analysis", "Analysis Data")
+                     "Replication Documentation", "Data", "Analysis Data")
 FIG_DIR <- file.path(find_root(marker = "scripts"), "Figures")
 dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
 
